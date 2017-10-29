@@ -11,16 +11,16 @@
         <menus>
           <Menu mnemonicParsing="false" text="File">
             <items>
-              <MenuItem mnemonicParsing="false" text="Close" />
+              <MenuItem fx:id="loadRecipiesButton" mnemonicParsing="false" onAction="#onLoadRecipiesButoonClicked" text="Load Recipies" />
             </items>
           </Menu>
           <Menu mnemonicParsing="false" text="Help">
             <items>
-                  <RadioMenuItem fx:id="defaultCss" mnemonicParsing="false" onAction="#onDefaultCssClicked" text="Default">
+                  <RadioMenuItem fx:id="defaultCssButton" mnemonicParsing="false" onAction="#onDefaultCssClicked" text="Default">
                      <toggleGroup>
                         <ToggleGroup fx:id="cssGroup" />
                      </toggleGroup></RadioMenuItem>
-                  <RadioMenuItem fx:id="darkCss" mnemonicParsing="false" onAction="#onDarkCssClicked" text="Dark" toggleGroup="$cssGroup" />
+                  <RadioMenuItem fx:id="darkCssButton" mnemonicParsing="false" onAction="#onDarkCssClicked" text="Dark" toggleGroup="$cssGroup" />
                   <SeparatorMenuItem mnemonicParsing="false" />
               <MenuItem mnemonicParsing="false" text="About" />
             </items>
