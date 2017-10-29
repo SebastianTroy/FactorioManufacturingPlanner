@@ -1,0 +1,199 @@
+[
+	{
+		"type": "recipe",
+		"name": "basic-oil-processing",
+		"category": "oil-processing",
+		"enabled": "false",
+		"energy_required": 5,
+		"ingredients": {
+			"crude-oil": 100
+		},
+		"results": {
+			"heavy-oil": 30,
+			"light-oil": 30,
+			"petroleum-gas": 40
+		},
+		"subgroup": "fluid-recipes"
+	},
+	{
+		"type": "recipe",
+		"name": "advanced-oil-processing",
+		"category": "oil-processing",
+		"enabled": "false",
+		"energy_required": 5,
+		"ingredients": {
+			"water": 50,
+			"crude-oil": 100
+		},
+		"results": {
+			"heavy-oil": 10,
+			"light-oil": 45,
+			"petroleum-gas": 55
+		},
+		"subgroup": "fluid-recipes"
+	},
+	{
+		"type": "recipe",
+		"name": "coal-liquefaction",
+		"category": "oil-processing",
+		"enabled": "false",
+		"energy_required": 5,
+		"ingredients": {
+			"coal": 10,
+			"heavy-oil": 25,
+			"steam": 50
+		},
+		"results": {
+			"heavy-oil": 35,
+			"light-oil": 15,
+			"petroleum-gas": 20
+		},
+		"subgroup": "fluid-recipes",
+		"allow_decomposition": "false"
+	},
+	{
+		"type": "recipe",
+		"name": "heavy-oil-cracking",
+		"category": "chemistry",
+		"enabled": "false",
+		"energy_required": 3,
+		"ingredients": {
+			"water": 30,
+			"heavy-oil": 40
+		},
+		"results": {
+			"light-oil": 30
+		},
+		"subgroup": "fluid-recipes"
+	},
+	{
+		"type": "recipe",
+		"name": "light-oil-cracking",
+		"category": "chemistry",
+		"enabled": "false",
+		"energy_required": 3,
+		"ingredients": {
+			"water": 30,
+			"light-oil": 30
+		},
+		"results": {
+			"petroleum-gas": 20
+		},
+		"subgroup": "fluid-recipes"
+	},
+	{
+		"type": "recipe",
+		"name": "sulfuric-acid",
+		"category": "chemistry",
+		"energy_required": 1,
+		"enabled": "false",
+		"ingredients": {
+			"sulfur": 5,
+			"iron-plate": 1,
+			"water": 100
+		},
+		"results": {
+			"sulfuric-acid": 50
+		},
+		"subgroup": "fluid-recipes"
+	},
+	{
+		"type": "recipe",
+		"name": "plastic-bar",
+		"category": "chemistry",
+		"energy_required": 1,
+		"enabled": "false",
+		"ingredients": {
+			"petroleum-gas": 20,
+			"coal": 1
+		},
+		"results": {
+			"plastic-bar": 2
+		},
+		"requester_paste_multiplier": 4
+	},
+	{
+		"type": "recipe",
+		"name": "solid-fuel-from-light-oil",
+		"category": "chemistry",
+		"energy_required": 3,
+		"ingredients": {
+			"light-oil": 10
+		},
+		"results": {
+			"solid-fuel": 1
+		},
+		"subgroup": "fluid-recipes",
+		"enabled": "false"
+	},
+	{
+		"type": "recipe",
+		"name": "solid-fuel-from-petroleum-gas",
+		"category": "chemistry",
+		"energy_required": 3,
+		"ingredients": {
+			"petroleum-gas": 20
+		},
+		"results": {
+			"solid-fuel": 1
+		},
+		"subgroup": "fluid-recipes",
+		"enabled": "false"
+	},
+	{
+		"type": "recipe",
+		"name": "solid-fuel-from-heavy-oil",
+		"category": "chemistry",
+		"energy_required": 3,
+		"ingredients": {
+			"heavy-oil": 20
+		},
+		"results": {
+			"solid-fuel": 1
+		},
+		"subgroup": "fluid-recipes",
+		"enabled": "false"
+	},
+	{
+		"type": "recipe",
+		"name": "sulfur",
+		"category": "chemistry",
+		"energy_required": 1,
+		"enabled": "false",
+		"ingredients": {
+			"water": 30,
+			"petroleum-gas": 30
+		},
+		"results": {
+			"sulfur": 2
+		}
+	},
+	{
+		"type": "recipe",
+		"name": "lubricant",
+		"category": "chemistry",
+		"enabled": "false",
+		"energy_required": 1,
+		"ingredients": {
+			"heavy-oil": 10
+		},
+		"results": {
+			"lubricant": 10
+		},
+		"subgroup": "fluid-recipes"
+	},
+	{
+		"type": "recipe",
+		"name": "empty-barrel",
+		"category": "crafting",
+		"energy_required": 1,
+		"subgroup": "intermediate-product",
+		"enabled": "false",
+		"ingredients": {
+			"steel-plate": 1
+		},
+		"results": {
+			"empty-barrel": 1
+		}
+	}
+]
