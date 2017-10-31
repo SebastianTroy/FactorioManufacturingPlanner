@@ -59,7 +59,7 @@ public class RecipesParser
 	 */
 	private boolean addBasicRecipie(JSONObject recipeObject, ArrayList<Recipe> parsedRecipies)
 	{
-		Object typeObject = recipeObject.get("types");
+		Object typeObject = recipeObject.get("type");
 		Object nameObject = recipeObject.get("name");
 		Object ingredientsObject = recipeObject.get("ingredients");
 		Object resultObject = recipeObject.get("result");
@@ -85,6 +85,7 @@ public class RecipesParser
 				}
 				
 				parsedRecipies.add(recipe);
+				return true;
 			}
 		} 
 		
