@@ -27,9 +27,14 @@
           </Menu>
         </menus>
       </MenuBar>
-      <SplitPane dividerPositions="0.1507537688442211, 0.5150753768844221" orientation="VERTICAL">
+      <SplitPane dividerPositions="0.23036649214659685, 0.5881326352530541" orientation="VERTICAL">
         <items>
-            <Pane />
+            <VBox>
+               <children>
+                  <TextField fx:id="allRecipesFilter" />
+                  <ListView fx:id="allRecipes" />
+               </children>
+            </VBox>
             <SplitPane dividerPositions="0.5">
               <items>
                   <VBox />

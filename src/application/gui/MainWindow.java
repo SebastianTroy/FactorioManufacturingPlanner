@@ -4,18 +4,31 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.function.Predicate;
+
+import org.json.simple.parser.ParseException;
 
 import application.manufacturingPlanner.Recipe;
 import application.recipeParser.RecipesParser;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
-import javafx.stage.FileChooser;
 
 public class MainWindow extends VBox
 {
+	@FXML
+	TextField allRecipesFilter;
+	@FXML
+	ListView<Recipe> allRecipes;
+
 	@FXML
 	MenuItem loadRecipiesButton;
 	@FXML
@@ -41,30 +54,56 @@ public class MainWindow extends VBox
 	@FXML
 	private void onLoadRecipiesButoonClicked()
 	{
-		FileChooser recipieFileChooser = new FileChooser();
-		recipieFileChooser.setSelectedExtensionFilter(new FileChooser.ExtensionFilter("Factorio recipies.lua file", "*.lua"));
+		ArrayList<Recipe> recipes = new ArrayList<Recipe>();
+		RecipesParser recipesParser = new RecipesParser();
 
-		// File recipiesFile = recipieFileChooser.showOpenDialog(this.getScene().getWindow());
 		// For now, while we don't have lua to JSON file conversion going on, supply a JSON file instead of a lua one
-		File recipiesFile = null;
+		File recipiesDirectory = null;
 		try {
-			recipiesFile = new File(getClass().getResource("/recipe.json").toURI());
-		} catch (URISyntaxException error) {
-			error.printStackTrace();
+			recipiesDirectory = new File(getClass().getResource("/recipes.json/../.").toURI());
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
 		}
 
-		if (recipiesFile != null) {
-			RecipesParser recipesParser = new RecipesParser();
-			ArrayList<Recipe> recipes = null;
-			try {
-				recipes = recipesParser.parseRecipies(recipiesFile);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			if (recipes != null) {
-				System.out.println("Num recipies: " + recipes.size());
+		if (recipiesDirectory.isDirectory()) {
+			for (File recipesFile : recipiesDirectory.listFiles()) {
+				if (recipesFile.isFile()) {
+					try {
+						recipes.addAll(recipesParser.parseRecipies(recipesFile));
+					} catch (IOException | ParseException e) {
+						System.out.println("File couldn't be parsed for recipes: " + recipesFile);
+						e.printStackTrace();
+					}
+				}
 			}
 		}
+
+		allRecipes.setItems(new SortedList<Recipe>(new FilteredList<Recipe>(FXCollections.observableArrayList(recipes), p -> true), (Recipe a, Recipe b) -> {
+			return a.name.compareTo(b.name);
+		}));
+
+		allRecipesFilter.textProperty().addListener(new ChangeListener<String>()
+		{
+			@Override
+			public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue)
+			{
+				SortedList<Recipe> sortedList = (SortedList<Recipe>) allRecipes.getItems();
+				FilteredList<Recipe> filteredList = (FilteredList<Recipe>) sortedList.getSource();
+				filteredList.setPredicate(new Predicate<Recipe>()
+				{
+					@Override
+					public boolean test(Recipe recipe)
+					{
+						return recipe.name.contains(newValue);
+					}
+				});
+				sortedList.sort((Recipe a, Recipe b) -> {
+					return a.name.compareTo(b.name);
+				});
+			}
+		});
+
+		System.out.println("Num recipies: " + recipes.size());
 	}
 
 	@FXML
