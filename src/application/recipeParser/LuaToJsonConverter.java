@@ -1,4 +1,4 @@
-package application.manufacturingPlanner;
+package application.recipeParser;
 
 import java.io.File;
 import java.io.FileNotFoundException;

@@ -5,8 +5,8 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 
-import application.manufacturingPlanner.Recipie;
-import application.manufacturingPlanner.RecipiesParser;
+import application.manufacturingPlanner.Recipe;
+import application.recipeParser.RecipesParser;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.ListView;
@@ -54,15 +54,15 @@ public class MainWindow extends VBox
 		}
 
 		if (recipiesFile != null) {
-			RecipiesParser recipiesParser = new RecipiesParser();
-			ArrayList<Recipie> recipies = null;
+			RecipesParser recipesParser = new RecipesParser();
+			ArrayList<Recipe> recipes = null;
 			try {
-				recipies = recipiesParser.parseRecipies(recipiesFile);
+				recipes = recipesParser.parseRecipies(recipiesFile);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			if (recipies != null) {
-				System.out.println("Num recipies: " + recipies.size());
+			if (recipes != null) {
+				System.out.println("Num recipies: " + recipes.size());
 			}
 		}
 	}
