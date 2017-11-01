@@ -25,17 +25,7 @@ public class RecipesParser
 		for (Object object : recipiesJson) {
 			if (object instanceof JSONObject) {
 				JSONObject recipieObject = (JSONObject) object;
-
-				// The format a recipe takes in the .lua is variable, try to interpret them in a way that doesn't break for new factorio
-				// versions
-				if (addBasicRecipie(recipieObject, parsedRecipies)) {
-					// added a recipe
-				} else if (addNormalAndExpensiveRecipe(recipieObject, parsedRecipies)) {
-					// Added two recipes, one normal the other expensive
-				} else {
-					// A recipe wasn't recognised by any of the functions designed to handle them
-					// If this is happening another function may need to be created to support the additional recipe format...
-					// or the conversion from lua to JSON needs modifying
+				if (!addRecipie(recipieObject, parsedRecipies)) {
 					System.out.println("FAILED: " + recipieObject);
 				}
 			} else {
@@ -47,39 +37,81 @@ public class RecipesParser
 	}
 
 	/**
-	 * Checks the recipe object directly contains the "type", "name", "ingredients" & "result" items, and converts it to a {@link Recipe}
+	 * Checks the recipe object for items like "type", "name", "ingredients" & "result" items, and converts it to a {@link Recipe}
 	 * then adds it to the parsedRecipies param.
 	 * 
-	 * This is the most common entry for Factorio version 0.15
+	 * Mandatory items:
+	 *  - "type"
+	 *  - "name"
+	 *  - One of:
+	 *    - "result"
+	 *    - "results"
+	 *    - "normal & "expensive"
 	 * 
 	 * @param recipeObject {@link JSONObject} to parse
 	 * @param parsedRecipies The list of parsed recipes to add the parsed recipe to
 	 * 
 	 * @return <code>true</code> if the recipe was added to the list of parsed recipes, otherwise <code>false</code>.
 	 */
-	private boolean addBasicRecipie(JSONObject recipeObject, ArrayList<Recipe> parsedRecipies)
+	private boolean addRecipie(JSONObject recipeObject, ArrayList<Recipe> parsedRecipies)
 	{
+		// used for all recipes
 		Object typeObject = recipeObject.get("type");
-		Object nameObject = recipeObject.get("name");
-		Object ingredientsObject = recipeObject.get("ingredients");
-		Object resultObject = recipeObject.get("result");
-		Object resultsObject = recipeObject.get("results");
+		Object nameObject = recipeObject.get("name");		
+		Object normalIngredientsObject = recipeObject.get("ingredients");
+		Object normalResultObject = recipeObject.get("result");
+		Object normalResultsObject = recipeObject.get("results");
 		
-		if (typeObject instanceof String && nameObject instanceof String && ingredientsObject instanceof HashMap) {
+		// used for recipes with a normal & expensive variant
+		Object normalDataObject = recipeObject.get("normal");
+		Object expensiveDataObject = recipeObject.get("expensive");
+		Object expensiveIngredientsObject = null;
+		Object expensiveResultObject = null;
+		Object expensiveResultsObject = null;
+		
+		if (typeObject instanceof String && nameObject instanceof String) {
 			if (typeObject.toString().equals("recipe")) {
 				Recipe recipe = new Recipe();
 				recipe.name = (String) nameObject;
-				recipe.ingredients = convertItemCountMapToHashMap((Map<?, ?>) ingredientsObject);
 				
-				if (resultObject instanceof String) {
-					// this assumes a single item of the result, recipes with multiple output will specify that
-					recipe.products.put((String)resultObject, 1);
-				} else if (resultsObject instanceof Map) {
+				if (normalDataObject instanceof Map && expensiveDataObject instanceof Map) {
+					// TODO parse these objects and populate both normal and expensive ingredients and results objects
+					
+					// ----- expensive -----
+					if (expensiveIngredientsObject instanceof Map) {
+						recipe.expensiveIngredients = convertItemCountMapToHashMap((Map<?, ?>) expensiveIngredientsObject);					
+					}
+					
+					if (expensiveResultObject instanceof String) {
+						// this assumes a single item of the result
+						recipe.expensiveProducts.put((String) expensiveResultObject, 1);
+					} else if (expensiveResultsObject instanceof Map) {
+						// this allows for multiple items to be produced, of more than one type
+						recipe.expensiveProducts = convertItemCountMapToHashMap((Map<?, ?>) expensiveResultsObject);
+					} else if (expensiveResultsObject instanceof JSONArray) {
+						// this allows for multiple items to be produced, of more than one type, where the actual quantity of items produced is non-integer due to a probabilistic output
+						recipe.expensiveProducts = convertItemProbabilityArrayToHashMap((JSONArray) expensiveResultsObject);
+					} else {
+						return false;
+					}
+				}
+				
+				// TODO code duplication above & below, local lambda?
+				
+				// ----- normal -----
+				if (normalIngredientsObject instanceof Map) {
+					recipe.normalIngredients = convertItemCountMapToHashMap((Map<?, ?>) normalIngredientsObject);					
+				}
+				
+				if (normalResultObject instanceof String) {
+					// this assumes a single item of the result
+					recipe.normalProducts.put((String) normalResultObject, 1);
+				} else if (normalResultsObject instanceof Map) {
 					// this allows for multiple items to be produced, of more than one type
-					recipe.products  = convertItemCountMapToHashMap((Map<?, ?>) resultsObject);
-				} else if (resultsObject instanceof JSONArray) {
+					recipe.normalProducts = convertItemCountMapToHashMap((Map<?, ?>) normalResultsObject);
+				} else if (normalResultsObject instanceof JSONArray) {
 					// this allows for multiple items to be produced, of more than one type, where the actual quantity of items produced is non-integer due to a probabilistic output
-					recipe.products  = convertItemProbabilityArrayToHashMap((JSONArray) resultsObject);
+					recipe.normalProducts = convertItemProbabilityArrayToHashMap((JSONArray) normalResultsObject);
 				} else {
 					return false;
 				}
@@ -89,20 +121,6 @@ public class RecipesParser
 			}
 		} 
 		
-		return false;
-	}
-
-	/**
-	 * TODO account for the fact that there are two recipies to add (one expensive, one cheap) 
-	 * 
-	 * @param recipieObject {@link JSONObject} to parse
-	 * @param parsedRecipies The list of parsed recipes to add the parsed recipe to
-	 * 
-	 * @return <code>true</code> if the recipe was added to the list of parsed recipes, otherwise <code>false</code>.
-	 */
-	private boolean addNormalAndExpensiveRecipe(JSONObject recipieObject, ArrayList<Recipe> parsedRecipies)
-	{
-		// TODO
 		return false;
 	}
 

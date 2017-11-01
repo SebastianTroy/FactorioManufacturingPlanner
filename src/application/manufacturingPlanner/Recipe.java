@@ -4,12 +4,22 @@ import java.util.HashMap;
 
 public class Recipe
 {
-	// TODO enum to differentiate cheap and expensive recipes
+	public enum Facility {
+		Unknown,
+		Manufacturer,
+		ManufacturerWithLiquid,
+		Centrifuge,
+		Refinery,
+		ChemicalPlant,
+		RocketSilo,
+	}
 	
-	public String name;
-	public HashMap<String, Number> ingredients = new HashMap<String, Number>();
-	public HashMap<String, Number> products = new HashMap<String, Number>();;
-	
+	public String name = "";
+	public HashMap<String, Number> normalIngredients = new HashMap<String, Number>();
+	public HashMap<String, Number> normalProducts = new HashMap<String, Number>();
+	public HashMap<String, Number> expensiveIngredients = new HashMap<String, Number>();
+	public HashMap<String, Number> expensiveProducts = new HashMap<String, Number>();
+	public Facility facilityRequired = Facility.Unknown;
 	
 	@Override
 	public String toString()
@@ -18,6 +28,10 @@ public class Recipe
 	}
 
 	public boolean equals(Recipe other) {
-		return other.name.equals(this.name) && other.ingredients.equals(this.ingredients) && other.products.equals(this.products);
+		return other.facilityRequired == this.facilityRequired 
+				&& other.name.equals(this.name) 
+				&& other.normalIngredients.equals(this.normalIngredients) 
+				&& other.expensiveIngredients.equals(this.expensiveIngredients) 
+				&& other.normalProducts.equals(this.normalProducts);
 	}
 }

@@ -87,19 +87,18 @@ public class MainWindow extends VBox
 			@Override
 			public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue)
 			{
-				SortedList<Recipe> sortedList = (SortedList<Recipe>) allRecipes.getItems();
-				FilteredList<Recipe> filteredList = (FilteredList<Recipe>) sortedList.getSource();
-				filteredList.setPredicate(new Predicate<Recipe>()
-				{
-					@Override
-					public boolean test(Recipe recipe)
+				if (((SortedList<Recipe>) allRecipes.getItems()).getSource() instanceof FilteredList<?>) {
+					@SuppressWarnings("unchecked")
+					FilteredList<Recipe> filteredList = (FilteredList<Recipe>) ((SortedList<Recipe>) allRecipes.getItems()).getSource();
+					filteredList.setPredicate(new Predicate<Recipe>()
 					{
-						return recipe.name.contains(newValue);
-					}
-				});
-				sortedList.sort((Recipe a, Recipe b) -> {
-					return a.name.compareTo(b.name);
-				});
+						@Override
+						public boolean test(Recipe recipe)
+						{
+							return recipe.name.contains(newValue);
+						}
+					});
+				}
 			}
 		});
 
