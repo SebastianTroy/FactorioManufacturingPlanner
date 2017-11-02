@@ -79,7 +79,7 @@ public class MainWindow extends VBox
 		}
 
 		allRecipes.setItems(new SortedList<Recipe>(new FilteredList<Recipe>(FXCollections.observableArrayList(recipes), p -> true), (Recipe a, Recipe b) -> {
-			return a.name.compareTo(b.name);
+			return a.toString().compareTo(b.toString());
 		}));
 
 		allRecipesFilter.textProperty().addListener(new ChangeListener<String>()
@@ -95,7 +95,7 @@ public class MainWindow extends VBox
 						@Override
 						public boolean test(Recipe recipe)
 						{
-							return recipe.name.contains(newValue);
+							return recipe.toString().contains(newValue);
 						}
 					});
 				}

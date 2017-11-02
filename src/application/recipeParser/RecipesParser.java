@@ -40,14 +40,6 @@ public class RecipesParser
 	 * Checks the recipe object for items like "type", "name", "ingredients" & "result" items, and converts it to a {@link Recipe}
 	 * then adds it to the parsedRecipies param.
 	 * 
-	 * Mandatory items:
-	 *  - "type"
-	 *  - "name"
-	 *  - One of:
-	 *    - "result"
-	 *    - "results"
-	 *    - "normal & "expensive"
-	 * 
 	 * @param recipeObject {@link JSONObject} to parse
 	 * @param parsedRecipies The list of parsed recipes to add the parsed recipe to
 	 * 
@@ -57,71 +49,88 @@ public class RecipesParser
 	{
 		// used for all recipes
 		Object typeObject = recipeObject.get("type");
-		Object nameObject = recipeObject.get("name");		
-		Object normalIngredientsObject = recipeObject.get("ingredients");
-		Object normalResultObject = recipeObject.get("result");
-		Object normalResultsObject = recipeObject.get("results");
-		
+		Object nameObject = recipeObject.get("name");	
+		Object categoryObject = recipeObject.get("category");
+
 		// used for recipes with a normal & expensive variant
 		Object normalDataObject = recipeObject.get("normal");
 		Object expensiveDataObject = recipeObject.get("expensive");
-		Object expensiveIngredientsObject = null;
-		Object expensiveResultObject = null;
-		Object expensiveResultsObject = null;
 		
 		if (typeObject instanceof String && nameObject instanceof String) {
 			if (typeObject.toString().equals("recipe")) {
 				Recipe recipe = new Recipe();
-				recipe.name = (String) nameObject;
+				recipe.setName((String) nameObject);
 				
-				if (normalDataObject instanceof Map && expensiveDataObject instanceof Map) {
-					// TODO parse these objects and populate both normal and expensive ingredients and results objects
-					
-					// ----- expensive -----
-					if (expensiveIngredientsObject instanceof Map) {
-						recipe.expensiveIngredients = convertItemCountMapToHashMap((Map<?, ?>) expensiveIngredientsObject);					
+				if (categoryObject instanceof String) {
+					switch ((String) categoryObject) {
+					case "crafting" : 
+						/* fall-through */
+					case "advanced-crafting" :
+						recipe.setRequiredFacility(Recipe.Facility.Manufacturer);
+						break;
+					case "smelting" :
+						recipe.setRequiredFacility(Recipe.Facility.Furnace);
+						break;
+					case "oil-processing" :
+						recipe.setRequiredFacility(Recipe.Facility.Refinery);
+						break;
+					case "chemistry" :
+						recipe.setRequiredFacility(Recipe.Facility.ChemicalPlant);
+						break;
+					case "crafting-with-fluid" :
+						recipe.setRequiredFacility(Recipe.Facility.ManufacturerWithLiquid);
+						break;
+					case "centrifuging" :
+						recipe.setRequiredFacility(Recipe.Facility.Centrifuge);
+						break;
+					case "rocket-building" :
+						recipe.setRequiredFacility(Recipe.Facility.RocketSilo);
+						break;
 					}
-					
-					if (expensiveResultObject instanceof String) {
-						// this assumes a single item of the result
-						recipe.expensiveProducts.put((String) expensiveResultObject, 1);
-					} else if (expensiveResultsObject instanceof Map) {
-						// this allows for multiple items to be produced, of more than one type
-						recipe.expensiveProducts = convertItemCountMapToHashMap((Map<?, ?>) expensiveResultsObject);
-					} else if (expensiveResultsObject instanceof JSONArray) {
-						// this allows for multiple items to be produced, of more than one type, where the actual quantity of items produced is non-integer due to a probabilistic output
-						recipe.expensiveProducts = convertItemProbabilityArrayToHashMap((JSONArray) expensiveResultsObject);
-					} else {
-						return false;
-					}
+				} else if (categoryObject == null) {
+					// default to something sensible, I assume this is what the game logic does anyway
+					recipe.setRequiredFacility(Recipe.Facility.Manufacturer);
 				}
 				
-				// TODO code duplication above & below, local lambda?
-				
-				// ----- normal -----
-				if (normalIngredientsObject instanceof Map) {
-					recipe.normalIngredients = convertItemCountMapToHashMap((Map<?, ?>) normalIngredientsObject);					
-				}
-				
-				if (normalResultObject instanceof String) {
-					// this assumes a single item of the result
-					recipe.normalProducts.put((String) normalResultObject, 1);
-				} else if (normalResultsObject instanceof Map) {
-					// this allows for multiple items to be produced, of more than one type
-					recipe.normalProducts = convertItemCountMapToHashMap((Map<?, ?>) normalResultsObject);
-				} else if (normalResultsObject instanceof JSONArray) {
-					// this allows for multiple items to be produced, of more than one type, where the actual quantity of items produced is non-integer due to a probabilistic output
-					recipe.normalProducts = convertItemProbabilityArrayToHashMap((JSONArray) normalResultsObject);
+				if (normalDataObject instanceof JSONObject) {
+					populateRecipeFromHashMap((JSONObject) normalDataObject, recipe, false);
 				} else {
-					return false;
+					populateRecipeFromHashMap(recipeObject, recipe, false);
 				}
 				
-				parsedRecipies.add(recipe);
-				return true;
+				if (expensiveDataObject instanceof JSONObject) {
+					populateRecipeFromHashMap((JSONObject) expensiveDataObject, recipe, true);
+				}
+				
+				if (recipe.isValid()) {
+					parsedRecipies.add(recipe);
+					return true;
+				}
 			}
 		} 
 		
 		return false;
+	}
+	
+	private void populateRecipeFromHashMap(JSONObject recipeComponents, Recipe toPopulate, boolean populateExpensiveComponents)
+	{
+		Object ingredientsObject = recipeComponents.get("ingredients");
+		Object resultObject = recipeComponents.get("result");
+		Object resultsObject = recipeComponents.get("results");
+			
+		if (ingredientsObject instanceof Map) {
+				toPopulate.setIngredients(convertItemCountMapToHashMap((Map<?, ?>) ingredientsObject), populateExpensiveComponents);					
+		}
+
+		if (resultObject instanceof String) {
+			HashMap<String, Number> products = new HashMap<String, Number>();
+			products.put((String) resultObject, 1);
+			toPopulate.setProducts(products, populateExpensiveComponents);
+		} else if (resultsObject instanceof Map) {
+			toPopulate.setProducts(convertItemCountMapToHashMap((Map<?, ?>) resultsObject), populateExpensiveComponents);
+		} else if (resultsObject instanceof JSONArray) {
+			toPopulate.setProducts(convertItemProbabilityArrayToHashMap((JSONArray) resultsObject), populateExpensiveComponents);
+		}
 	}
 
 	private HashMap<String, Number> convertItemCountMapToHashMap(Map<?, ?> jsonMap)
@@ -143,8 +152,8 @@ public class RecipesParser
 		HashMap<String, Number> hashMap = new HashMap<String, Number>();
 		
 		for (Object productObject : jsonArray) {
-			String productName = new String();
-			AtomicLong atomicProductProbability = new AtomicLong(0);
+			StringBuilder productNameBuilder = new StringBuilder();
+			AtomicLong atomicProductProbability = new AtomicLong(1); // This defaults to one because in some cases probability isn't used and so this value wouldn't be modified
 			AtomicLong atomicProductQuantity = new AtomicLong(0);
 			if (productObject instanceof Map) {
 				((Map<?, ?>) productObject).forEach((key, value) -> {
@@ -152,13 +161,14 @@ public class RecipesParser
 						if (key.equals("probability")) {
 							atomicProductProbability.set(Double.doubleToLongBits(((Number)value).doubleValue()));
 						} else {
-							productName.concat((String)key);
+							productNameBuilder.append((String) key);
 							atomicProductQuantity.set(Double.doubleToLongBits(((Number)value).doubleValue()));
 						}
 					}
 				});
 			}
 			
+			String productName = productNameBuilder.toString();
 			double productProbability = Double.longBitsToDouble(atomicProductProbability.longValue());
 			double productQuantity = Double.longBitsToDouble(atomicProductQuantity.longValue());
 			if (!productName.isEmpty() && productProbability * productQuantity != 0) {
@@ -167,32 +177,7 @@ public class RecipesParser
 				assert !productName.isEmpty() && productProbability * productQuantity != 0 : "Name[" + productName + "] Quantity[" + String.valueOf(productQuantity) + "] Probability[" + String.valueOf(productProbability) + "]";
 			}
 		}
-		
+
 		return hashMap;
 	}
-
-	/**
-	 * The recipies in the .lua have a variable structure, for now just support the basic structure, but be aware that
-	 * 
-	 * <pre>
-	 * private boolean checkKeysAreValid(JSONObject recipieObject)
-	 * {
-	 * 	if (recipieObject.containsKey("type") && recipieObject.containsKey("name")) {
-	 * 		if (recipieObject.containsKey("ingredients") && recipieObject.containsKey("result")) {
-	 * 			return true;
-	 * 		} else if (recipieObject.containsKey("normal") && recipieObject.containsKey("expensive")) {
-	 * 			JSONObject normalIngredientsObject = (JSONObject) recipieObject.get("normal");
-	 * 			JSONObject expensiveInredientsObject = (JSONObject) recipieObject.get("expensive");
-	 * 			if (normalIngredientsObject.containsKey("ingredients") && normalIngredientsObject.containsKey("result") && expensiveInredientsObject.containsKey("ingredients")
-	 * 					&& expensiveInredientsObject.containsKey("result")) {
-	 * 				return true;
-	 * 			}
-	 * 		}
-	 * 	}
-	 * 	System.out.println("Recipie contents not recognised");
-	 * 	System.out.println(recipieObject);
-	 * 	return false;
-	 * }
-	 * </pre>
-	 */
 }
