@@ -70,22 +70,6 @@
             </GridPane>
          </content>
       </TitledPane>
-      <TitledPane text="Factory Inputs" VBox.vgrow="ALWAYS">
-         <content>
-            <TableView>
-              <columns>
-                <TableColumn editable="false" prefWidth="75.0" text="Item Name" />
-                <TableColumn editable="false" prefWidth="75.0" text="Count (sec)" />
-                  <TableColumn editable="false" prefWidth="75.0" text="Belts required" />
-                  <TableColumn editable="false" prefWidth="75.0" text="Buildings required" />
-                  <TableColumn editable="false" prefWidth="75.0" text="Column X" />
-              </columns>
-               <columnResizePolicy>
-                  <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-               </columnResizePolicy>
-            </TableView>
-         </content>
-      </TitledPane>
       <TitledPane text="Factory" VBox.vgrow="ALWAYS">
          <content>
             <TreeTableView>
@@ -100,6 +84,22 @@
                   <TreeTableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                </columnResizePolicy>
             </TreeTableView>
+         </content>
+      </TitledPane>
+      <TitledPane text="Factory Inputs" VBox.vgrow="ALWAYS">
+         <content>
+            <TableView>
+              <columns>
+                <TableColumn editable="false" prefWidth="75.0" text="Item Name" />
+                <TableColumn editable="false" prefWidth="75.0" text="Count (sec)" />
+                  <TableColumn editable="false" prefWidth="75.0" text="Belts required" />
+                  <TableColumn editable="false" prefWidth="75.0" text="Buildings required" />
+                  <TableColumn editable="false" prefWidth="75.0" text="Column X" />
+              </columns>
+               <columnResizePolicy>
+                  <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+               </columnResizePolicy>
+            </TableView>
          </content>
       </TitledPane>
    </children>

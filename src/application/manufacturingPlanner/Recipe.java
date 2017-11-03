@@ -56,7 +56,7 @@ public class Recipe
 	public boolean isValid() 
 	{
 		return  facilityRequired != Facility.Unknown
-				&& !name.isEmpty()
+				&& !name.get().isEmpty()
 				&& !normalIngredients.isEmpty()
 				&& !normalProducts.isEmpty()
 				&& ((expensiveIngredients.isEmpty() && expensiveProducts.isEmpty()) 

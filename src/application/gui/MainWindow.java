@@ -78,7 +78,7 @@ public class MainWindow extends VBox
 		});
 
 		factoryOutputsDatabase.addListener((ListChangeListener.Change<? extends Recipe> c) -> {
-			updateFactoryInputs();
+			updateFactory();
 		});
 
 		factoryProductsTable.setItems(factoryOutputsDatabase);
@@ -87,13 +87,13 @@ public class MainWindow extends VBox
 		factoryProductsTableProductionRateColumn.setCellFactory(TextFieldTableCell.<FactoryProduct, Double> forTableColumn(new DoubleStringConverter()));
 		factoryProductsTableProductionRateColumn.setOnEditCommit(event -> {
 			event.getRowValue().setProductionRate(event.getNewValue());
-			updateFactoryInputs();
+			updateFactory();
 		});
 		factoryProductsTableProductionRateUnitColumn.setCellValueFactory(new PropertyValueFactory<FactoryProduct, FactoryProduct.ProductionRateUnit>("productionRateUnit"));
 		factoryProductsTableProductionRateUnitColumn.setCellFactory(ComboBoxTableCell.<FactoryProduct, FactoryProduct.ProductionRateUnit> forTableColumn(FactoryProduct.ProductionRateUnit.values()));
 		factoryProductsTableProductionRateUnitColumn.setOnEditCommit(event -> {
 			event.getRowValue().setProductionRateUnit(event.getNewValue());
-			updateFactoryInputs();
+			updateFactory();
 		});
 	}
 
@@ -180,7 +180,7 @@ public class MainWindow extends VBox
 		}
 	}
 	
-	private void updateFactoryInputs()
+	private void updateFactory()
 	{
 		
 	}
