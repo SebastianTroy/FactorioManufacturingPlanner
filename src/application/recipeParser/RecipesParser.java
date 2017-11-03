@@ -37,8 +37,8 @@ public class RecipesParser
 	}
 
 	/**
-	 * Checks the recipe object for items like "type", "name", "ingredients" & "result" items, and converts it to a {@link Recipe}
-	 * then adds it to the parsedRecipies param.
+	 * Checks the recipe object for items like "type", "name", "ingredients" & "result" items, and converts it to a {@link Recipe} then adds
+	 * it to the parsedRecipies param.
 	 * 
 	 * @param recipeObject {@link JSONObject} to parse
 	 * @param parsedRecipies The list of parsed recipes to add the parsed recipe to
@@ -152,7 +152,8 @@ public class RecipesParser
 
 		for (Object productObject : jsonArray) {
 			StringBuilder productNameBuilder = new StringBuilder();
-			AtomicLong atomicProductProbability = new AtomicLong(1); // This defaults to one because in some cases probability isn't used and so this value wouldn't be modified
+			AtomicLong atomicProductProbability = new AtomicLong(1); // This defaults to one because in some cases probability isn't used
+																		// and so this value wouldn't be modified
 			AtomicLong atomicProductQuantity = new AtomicLong(0);
 			if (productObject instanceof Map) {
 				((Map<?, ?>) productObject).forEach((key, value) -> {

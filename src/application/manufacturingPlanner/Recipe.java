@@ -1,20 +1,16 @@
 package application.manufacturingPlanner;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import javafx.beans.property.SimpleStringProperty;
+import javafx.util.Pair;
 
 public class Recipe
 {
-	public enum Facility {
-		Unknown,
-		Manufacturer,
-		ManufacturerWithLiquid,
-		Centrifuge,
-		Refinery,
-		ChemicalPlant,
-		RocketSilo, 
-		Furnace,
+	public enum Facility
+	{
+		Unknown, Manufacturer, ManufacturerWithLiquid, Centrifuge, Refinery, ChemicalPlant, RocketSilo, Furnace,
 	}
 
 	private final SimpleStringProperty name = new SimpleStringProperty("");
@@ -38,13 +34,50 @@ public class Recipe
 		setRequiredFacility(other.facilityRequired);
 	}
 
-	public boolean equals(Recipe other) 
+	/**
+	 * Some recipes have inputs and outputs of the same type, which messes with recursive calculations, so return the essence of the recipe
+	 * (i.e. simplified from 5X in and 10X out, to just 5X out)
+	 */
+	public Recipe getRecipeNetIngredientsAndProducts()
 	{
-		return other.facilityRequired == this.facilityRequired 
-				&& other.name.equals(this.name) 
-				&& other.normalIngredients.equals(this.normalIngredients) 
-				&& other.expensiveIngredients.equals(this.expensiveIngredients) 
-				&& other.normalProducts.equals(this.normalProducts);
+		Recipe netRecipe = new Recipe(this);
+		
+		java.util.function.BiConsumer<HashMap<String, Number>, HashMap<String, Number>> func = (ingredients, products) -> {
+			// So we don't get concurrent exceptions, store the things to do then action them afterwards
+			ArrayList<String> keysToRemove = new ArrayList<String>();
+			ArrayList<Pair<String, Double>> netProductsToReAdd = new ArrayList<Pair<String, Double>>();
+			
+			// check the ingredients and products for matching items (i.e. same product for recipe used as ingredient)
+			for (String ingredientKey : ingredients.keySet()) {
+				if (products.containsKey(ingredientKey)) {
+					double quantityConsumed = ingredients.get(ingredientKey).doubleValue();
+					double quantityProduced = products.get(ingredientKey).doubleValue();
+					Double netQuantityProduced = Double.valueOf(quantityProduced - quantityConsumed);
+					
+					keysToRemove.add(ingredientKey);
+					netProductsToReAdd.add(new Pair<String, Double>(ingredientKey, netQuantityProduced));
+				}
+			}
+			
+			// now complete stored actions
+			keysToRemove.forEach(key -> {
+				ingredients.remove(key);
+				products.remove(key);
+			});
+			netProductsToReAdd.forEach(pair -> {
+				products.put(pair.getKey(), pair.getValue());
+			});
+		};
+		
+		func.accept(netRecipe.normalIngredients, netRecipe.normalProducts);
+		func.accept(netRecipe.expensiveIngredients, netRecipe.expensiveProducts);
+				
+		return netRecipe;
+	}
+
+	public boolean equals(Recipe other)
+	{
+		return other.facilityRequired == this.facilityRequired && other.name.equals(this.name) && other.normalIngredients.equals(this.normalIngredients) && other.expensiveIngredients.equals(this.expensiveIngredients) && other.normalProducts.equals(this.normalProducts);
 	}
 
 	@Override
@@ -53,14 +86,9 @@ public class Recipe
 		return name.get();
 	}
 
-	public boolean isValid() 
+	public boolean isValid()
 	{
-		return  facilityRequired != Facility.Unknown
-				&& !name.get().isEmpty()
-				&& !normalIngredients.isEmpty()
-				&& !normalProducts.isEmpty()
-				&& ((expensiveIngredients.isEmpty() && expensiveProducts.isEmpty()) 
-						|| (!expensiveIngredients.isEmpty() && !expensiveProducts.isEmpty()));
+		return facilityRequired != Facility.Unknown && !name.get().isEmpty() && !normalIngredients.isEmpty() && !normalProducts.isEmpty() && ((expensiveIngredients.isEmpty() && expensiveProducts.isEmpty()) || (!expensiveIngredients.isEmpty() && !expensiveProducts.isEmpty()));
 	}
 
 	public String getName()

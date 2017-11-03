@@ -25,21 +25,21 @@ public class FactoryProduct extends Recipe
 
 	public double getProductionRatePerSecond()
 	{
-		double multiplyer = 0;
+		double divisor = 0;
 
 		switch (productionRateUnit.get()) {
 			case Second:
-				multiplyer = 1;
+				divisor = 1;
 				break;
 			case Minute:
-				multiplyer = 60;
+				divisor = 60;
 				break;
 			case Hour:
-				multiplyer = 60 * 60;
+				divisor = 60 * 60;
 				break;
 		}
 
-		return productionRate.get() * multiplyer;
+		return productionRate.get() / divisor;
 	}
 
 	public ProductionRateUnit getProductionRateUnit()

@@ -8,6 +8,7 @@ import java.util.function.Predicate;
 
 import org.json.simple.parser.ParseException;
 
+import application.manufacturingPlanner.FactoryIntermediary;
 import application.manufacturingPlanner.FactoryProduct;
 import application.manufacturingPlanner.Recipe;
 import application.recipeParser.RecipesParser;
@@ -26,14 +27,25 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeTableColumn;
+import javafx.scene.control.TreeTableView;
 import javafx.scene.control.cell.ComboBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.control.cell.TreeItemPropertyValueFactory;
 import javafx.scene.layout.VBox;
 import javafx.util.converter.DoubleStringConverter;
 
 public class MainWindow extends VBox
 {
+	@FXML
+	MenuItem loadRecipiesButton;
+	@FXML
+	MenuItem defaultCssButton;
+	@FXML
+	MenuItem darkCssButton;
+
 	@FXML
 	TextField allRecipesFilter;
 	@FXML
@@ -52,14 +64,17 @@ public class MainWindow extends VBox
 	TableColumn<FactoryProduct, FactoryProduct.ProductionRateUnit> factoryProductsTableProductionRateUnitColumn;
 
 	@FXML
-	MenuItem loadRecipiesButton;
+	TreeTableView<FactoryIntermediary> factoryIntermediariesTable;
 	@FXML
-	MenuItem defaultCssButton;
+	TreeTableColumn<FactoryIntermediary, String> factoryIntermediariesTableIntermediaryName;
 	@FXML
-	MenuItem darkCssButton;
+	TreeTableColumn<FactoryIntermediary, String> factoryIntermediariesTableIntermediaryItemName;
+	@FXML
+	TreeTableColumn<FactoryIntermediary, Double> factoryIntermediariesTableCountPerSecond;
 
 	private ObservableList<Recipe> allRecipesDatabase = FXCollections.observableArrayList();
 	private ObservableList<FactoryProduct> factoryOutputsDatabase = FXCollections.observableArrayList();
+	private ObservableList<FactoryIntermediary> factoryIntermediariesDatabase = FXCollections.observableArrayList();
 
 	@FXML
 	void initialize()
@@ -95,6 +110,11 @@ public class MainWindow extends VBox
 			event.getRowValue().setProductionRateUnit(event.getNewValue());
 			updateFactory();
 		});
+
+		factoryIntermediariesTable.setShowRoot(false);
+		factoryIntermediariesTableIntermediaryName.setCellValueFactory(new TreeItemPropertyValueFactory<FactoryIntermediary, String>("name"));
+		factoryIntermediariesTableIntermediaryItemName.setCellValueFactory(new TreeItemPropertyValueFactory<FactoryIntermediary, String>("itemName"));
+		factoryIntermediariesTableCountPerSecond.setCellValueFactory(new TreeItemPropertyValueFactory<FactoryIntermediary, Double>("requiredIntermediariesPerSecond"));
 	}
 
 	@FXML
@@ -179,9 +199,23 @@ public class MainWindow extends VBox
 			});
 		}
 	}
-	
+
 	private void updateFactory()
 	{
-		
+		ArrayList<FactoryIntermediary> intermediaries = new ArrayList<FactoryIntermediary>();
+
+		for (FactoryProduct product : factoryOutputsDatabase) {
+			// TODO allow for expensive recipes
+			intermediaries.add(new FactoryIntermediary(product, product.getName(), product.getProductionRatePerSecond(), allRecipesDatabase, false));
+		}
+
+		factoryIntermediariesDatabase.setAll(intermediaries);
+
+		TreeItem<FactoryIntermediary> rootIntermediary = new TreeItem<FactoryIntermediary>();
+		rootIntermediary.setExpanded(true);
+		for (FactoryIntermediary topLevelIntermediary : factoryIntermediariesDatabase) {
+			topLevelIntermediary.recursivelyAddIntermediariesToTree(rootIntermediary);
+		}
+		factoryIntermediariesTable.setRoot(rootIntermediary);
 	}
 }

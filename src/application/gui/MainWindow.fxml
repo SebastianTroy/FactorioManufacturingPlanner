@@ -72,10 +72,11 @@
       </TitledPane>
       <TitledPane text="Factory" VBox.vgrow="ALWAYS">
          <content>
-            <TreeTableView>
+            <TreeTableView fx:id="factoryIntermediariesTable">
               <columns>
-                <TreeTableColumn prefWidth="75.0" text="Item Name" />
-                <TreeTableColumn prefWidth="75.0" text="Total / sec" />
+                  <TreeTableColumn fx:id="factoryIntermediariesTableIntermediaryName" prefWidth="75.0" text="Recipe" />
+                <TreeTableColumn fx:id="factoryIntermediariesTableIntermediaryItemName" prefWidth="75.0" text="Item Name" />
+                <TreeTableColumn fx:id="factoryIntermediariesTableCountPerSecond" prefWidth="75.0" text="Total / sec" />
                   <TreeTableColumn prefWidth="75.0" text="Y Belt" />
                   <TreeTableColumn prefWidth="75.0" text="R Belt" />
                   <TreeTableColumn prefWidth="75.0" text="B Belt" />
