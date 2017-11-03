@@ -22,7 +22,7 @@ public class LuaToJsonConverter
 	public static JSONArray getLuaRecipiesAsJson(File luaRecipesFile) throws ParseException, FileNotFoundException, IOException
 	{
 		// TODO accept an actual .lua file and convert it to a json string in code
-		
+
 		// I've cheated for now and hand crafted a json file from the lua, mostly using regexes and basic copy/replace
 		if (luaRecipesFile.getName().endsWith(".json")) {
 			JSONParser parser = new JSONParser();
@@ -30,9 +30,9 @@ public class LuaToJsonConverter
 
 			if (parsedJsonString instanceof JSONArray) {
 				return (JSONArray) parsedJsonString;
-			} 
+			}
 		}
-		
+
 		throw new ParseException(ParseException.ERROR_UNEXPECTED_TOKEN);
 	}
 }

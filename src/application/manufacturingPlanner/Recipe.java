@@ -2,6 +2,8 @@ package application.manufacturingPlanner;
 
 import java.util.HashMap;
 
+import javafx.beans.property.SimpleStringProperty;
+
 public class Recipe
 {
 	public enum Facility {
@@ -14,14 +16,28 @@ public class Recipe
 		RocketSilo, 
 		Furnace,
 	}
-	
-	private String name = "";
+
+	private final SimpleStringProperty name = new SimpleStringProperty("");
 	private HashMap<String, Number> normalIngredients = new HashMap<String, Number>();
 	private HashMap<String, Number> normalProducts = new HashMap<String, Number>();
 	private HashMap<String, Number> expensiveIngredients = new HashMap<String, Number>();
 	private HashMap<String, Number> expensiveProducts = new HashMap<String, Number>();
 	private Facility facilityRequired = Facility.Unknown;
-	
+
+	public Recipe()
+	{
+	}
+
+	public Recipe(Recipe other)
+	{
+		setName(other.getName());
+		setIngredients(other.normalIngredients, false);
+		setIngredients(other.expensiveIngredients, true);
+		setProducts(other.normalProducts, false);
+		setProducts(other.expensiveProducts, true);
+		setRequiredFacility(other.facilityRequired);
+	}
+
 	public boolean equals(Recipe other) 
 	{
 		return other.facilityRequired == this.facilityRequired 
@@ -34,7 +50,7 @@ public class Recipe
 	@Override
 	public String toString()
 	{
-		return name;
+		return name.get();
 	}
 
 	public boolean isValid() 
@@ -45,6 +61,11 @@ public class Recipe
 				&& !normalProducts.isEmpty()
 				&& ((expensiveIngredients.isEmpty() && expensiveProducts.isEmpty()) 
 						|| (!expensiveIngredients.isEmpty() && !expensiveProducts.isEmpty()));
+	}
+
+	public String getName()
+	{
+		return name.get();
 	}
 
 	public HashMap<String, Number> getIngredients(boolean returnExpensiveIngredientsIfPossible)
@@ -64,12 +85,12 @@ public class Recipe
 			return normalProducts;
 		}
 	}
-	
+
 	public void setName(String name)
 	{
-		this.name = name;
+		this.name.set(name);
 	}
-	
+
 	public void setRequiredFacility(Facility facilityRequiredToProcessRecipe)
 	{
 		this.facilityRequired = facilityRequiredToProcessRecipe;
@@ -83,13 +104,13 @@ public class Recipe
 			normalIngredients = ingredients;
 		}
 	}
-	
+
 	public void setProducts(HashMap<String, Number> products, boolean productsAreExpensiveVareity)
 	{
 		if (productsAreExpensiveVareity) {
 			expensiveProducts = products;
 		} else {
-			normalProducts= products;
+			normalProducts = products;
 		}
 	}
 }

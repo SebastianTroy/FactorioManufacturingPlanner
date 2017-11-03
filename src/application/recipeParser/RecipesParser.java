@@ -49,77 +49,76 @@ public class RecipesParser
 	{
 		// used for all recipes
 		Object typeObject = recipeObject.get("type");
-		Object nameObject = recipeObject.get("name");	
+		Object nameObject = recipeObject.get("name");
 		Object categoryObject = recipeObject.get("category");
 
 		// used for recipes with a normal & expensive variant
 		Object normalDataObject = recipeObject.get("normal");
 		Object expensiveDataObject = recipeObject.get("expensive");
-		
+
 		if (typeObject instanceof String && nameObject instanceof String) {
 			if (typeObject.toString().equals("recipe")) {
 				Recipe recipe = new Recipe();
 				recipe.setName((String) nameObject);
-				
+
 				if (categoryObject instanceof String) {
 					switch ((String) categoryObject) {
-					case "crafting" : 
-						/* fall-through */
-					case "advanced-crafting" :
-						recipe.setRequiredFacility(Recipe.Facility.Manufacturer);
-						break;
-					case "smelting" :
-						recipe.setRequiredFacility(Recipe.Facility.Furnace);
-						break;
-					case "oil-processing" :
-						recipe.setRequiredFacility(Recipe.Facility.Refinery);
-						break;
-					case "chemistry" :
-						recipe.setRequiredFacility(Recipe.Facility.ChemicalPlant);
-						break;
-					case "crafting-with-fluid" :
-						recipe.setRequiredFacility(Recipe.Facility.ManufacturerWithLiquid);
-						break;
-					case "centrifuging" :
-						recipe.setRequiredFacility(Recipe.Facility.Centrifuge);
-						break;
-					case "rocket-building" :
-						recipe.setRequiredFacility(Recipe.Facility.RocketSilo);
-						break;
+						case "crafting":
+							/* fall-through */
+						case "advanced-crafting":
+							recipe.setRequiredFacility(Recipe.Facility.Manufacturer);
+							break;
+						case "smelting":
+							recipe.setRequiredFacility(Recipe.Facility.Furnace);
+							break;
+						case "oil-processing":
+							recipe.setRequiredFacility(Recipe.Facility.Refinery);
+							break;
+						case "chemistry":
+							recipe.setRequiredFacility(Recipe.Facility.ChemicalPlant);
+							break;
+						case "crafting-with-fluid":
+							recipe.setRequiredFacility(Recipe.Facility.ManufacturerWithLiquid);
+							break;
+						case "centrifuging":
+							recipe.setRequiredFacility(Recipe.Facility.Centrifuge);
+							break;
+						case "rocket-building":
+							recipe.setRequiredFacility(Recipe.Facility.RocketSilo);
+							break;
 					}
 				} else if (categoryObject == null) {
 					// default to something sensible, I assume this is what the game logic does anyway
 					recipe.setRequiredFacility(Recipe.Facility.Manufacturer);
 				}
-				
+
 				if (normalDataObject instanceof JSONObject) {
 					populateRecipeFromHashMap((JSONObject) normalDataObject, recipe, false);
 				} else {
 					populateRecipeFromHashMap(recipeObject, recipe, false);
 				}
-				
+
 				if (expensiveDataObject instanceof JSONObject) {
 					populateRecipeFromHashMap((JSONObject) expensiveDataObject, recipe, true);
 				}
-				
+
 				if (recipe.isValid()) {
 					parsedRecipies.add(recipe);
 					return true;
 				}
 			}
-		} 
-		
+		}
 		return false;
 	}
-	
+
 	private void populateRecipeFromHashMap(JSONObject recipeComponents, Recipe toPopulate, boolean populateExpensiveComponents)
 	{
 		Object ingredientsObject = recipeComponents.get("ingredients");
 		Object resultObject = recipeComponents.get("result");
 		Object resultsObject = recipeComponents.get("results");
-			
+
 		if (ingredientsObject instanceof Map) {
-				toPopulate.setIngredients(convertItemCountMapToHashMap((Map<?, ?>) ingredientsObject), populateExpensiveComponents);					
+			toPopulate.setIngredients(convertItemCountMapToHashMap((Map<?, ?>) ingredientsObject), populateExpensiveComponents);
 		}
 
 		if (resultObject instanceof String) {
@@ -138,7 +137,7 @@ public class RecipesParser
 		HashMap<String, Number> hashMap = new HashMap<String, Number>();
 		jsonMap.forEach((key, value) -> {
 			if (key instanceof String && value instanceof Number) {
-				hashMap.put((String)key, (Number)value);
+				hashMap.put((String) key, (Number) value);
 			} else {
 				assert key instanceof String && value instanceof Number : "Expected Map<String, Number>, got Map<" + key.getClass().getName() + ", " + value.getClass().getName() + ">";
 			}
@@ -146,11 +145,11 @@ public class RecipesParser
 
 		return hashMap;
 	}
-	
+
 	private HashMap<String, Number> convertItemProbabilityArrayToHashMap(JSONArray jsonArray)
 	{
 		HashMap<String, Number> hashMap = new HashMap<String, Number>();
-		
+
 		for (Object productObject : jsonArray) {
 			StringBuilder productNameBuilder = new StringBuilder();
 			AtomicLong atomicProductProbability = new AtomicLong(1); // This defaults to one because in some cases probability isn't used and so this value wouldn't be modified
@@ -159,15 +158,15 @@ public class RecipesParser
 				((Map<?, ?>) productObject).forEach((key, value) -> {
 					if (key instanceof String && value instanceof Number) {
 						if (key.equals("probability")) {
-							atomicProductProbability.set(Double.doubleToLongBits(((Number)value).doubleValue()));
+							atomicProductProbability.set(Double.doubleToLongBits(((Number) value).doubleValue()));
 						} else {
 							productNameBuilder.append((String) key);
-							atomicProductQuantity.set(Double.doubleToLongBits(((Number)value).doubleValue()));
+							atomicProductQuantity.set(Double.doubleToLongBits(((Number) value).doubleValue()));
 						}
 					}
 				});
 			}
-			
+
 			String productName = productNameBuilder.toString();
 			double productProbability = Double.longBitsToDouble(atomicProductProbability.longValue());
 			double productQuantity = Double.longBitsToDouble(atomicProductQuantity.longValue());
