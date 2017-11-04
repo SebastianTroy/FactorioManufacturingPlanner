@@ -2,22 +2,24 @@ package application.manufacturingPlanner;
 
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
 
-public class FactoryProduct extends Recipe
+public class FactoryProduct
 {
 	public enum ProductionRateUnit
 	{
 		Second, Minute, Hour,
 	}
 
+	private SimpleStringProperty productName = new SimpleStringProperty();
 	private SimpleDoubleProperty productionRate = new SimpleDoubleProperty(1);
 	private SimpleObjectProperty<ProductionRateUnit> productionRateUnit = new SimpleObjectProperty<ProductionRateUnit>(ProductionRateUnit.Minute);
 
-	public FactoryProduct(Recipe other)
+	public FactoryProduct(String producName)
 	{
-		super(other);
+		this.productName.set(producName);
 	}
-
+	
 	public double getProductionRate()
 	{
 		return productionRate.get();
@@ -40,6 +42,11 @@ public class FactoryProduct extends Recipe
 		}
 
 		return productionRate.get() / divisor;
+	}
+	
+	public String getProductName()
+	{
+		return productName.get();
 	}
 
 	public ProductionRateUnit getProductionRateUnit()

@@ -47,9 +47,9 @@ public class MainWindow extends VBox
 	MenuItem darkCssButton;
 
 	@FXML
-	TextField allRecipesFilter;
+	TextField allProductsFilter;
 	@FXML
-	ListView<Recipe> allRecipesList;
+	ListView<String> allProductsList;
 	@FXML
 	Button addFactoryProduct;
 	@FXML
@@ -73,31 +73,32 @@ public class MainWindow extends VBox
 	TreeTableColumn<FactoryIntermediary, Double> factoryIntermediariesTableCountPerSecond;
 
 	private ObservableList<Recipe> allRecipesDatabase = FXCollections.observableArrayList();
+	private ObservableList<String> allProductsDatabase = FXCollections.observableArrayList();
 	private ObservableList<FactoryProduct> factoryOutputsDatabase = FXCollections.observableArrayList();
 	private ObservableList<FactoryIntermediary> factoryIntermediariesDatabase = FXCollections.observableArrayList();
 
 	@FXML
 	void initialize()
 	{
-		allRecipesList.setItems(new SortedList<Recipe>(new FilteredList<Recipe>(allRecipesDatabase, p -> true), (Recipe a, Recipe b) -> {
-			return a.getName().compareTo(b.getName());
+		allProductsList.setItems(new SortedList<String>(new FilteredList<String>(allProductsDatabase, p -> true), (String a, String b) -> {
+			return a.compareTo(b);
 		}));
 
-		allRecipesFilter.textProperty().addListener(new ChangeListener<String>()
+		allProductsFilter.textProperty().addListener(new ChangeListener<String>()
 		{
 			@Override
 			public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue)
 			{
-				filterRecipesList();
+				filterProductsList();
 			}
 		});
 
-		factoryOutputsDatabase.addListener((ListChangeListener.Change<? extends Recipe> c) -> {
+		factoryOutputsDatabase.addListener((ListChangeListener.Change<? extends FactoryProduct> c) -> {
 			updateFactory();
 		});
 
 		factoryProductsTable.setItems(factoryOutputsDatabase);
-		factoryProductsTableProductNameColumn.setCellValueFactory(new PropertyValueFactory<FactoryProduct, String>("name"));
+		factoryProductsTableProductNameColumn.setCellValueFactory(new PropertyValueFactory<FactoryProduct, String>("productName"));
 		factoryProductsTableProductionRateColumn.setCellValueFactory(new PropertyValueFactory<FactoryProduct, Double>("productionRate"));
 		factoryProductsTableProductionRateColumn.setCellFactory(TextFieldTableCell.<FactoryProduct, Double> forTableColumn(new DoubleStringConverter()));
 		factoryProductsTableProductionRateColumn.setOnEditCommit(event -> {
@@ -145,8 +146,16 @@ public class MainWindow extends VBox
 		}
 
 		allRecipesDatabase.setAll(recipes);
+		System.out.println("Num recipies: " + allRecipesDatabase.size());
 
-		System.out.println("Num recipies: " + recipes.size());
+		allRecipesDatabase.forEach(recipe -> {
+			recipe.getProducts(true).forEach((itemName, itemCount) -> {
+				if (!allProductsDatabase.contains(itemName)) {
+					allProductsDatabase.add(itemName);
+				}
+			});
+		});
+		System.out.println("Num Item Types: " + allProductsDatabase.size());
 	}
 
 	@FXML
@@ -166,11 +175,7 @@ public class MainWindow extends VBox
 	@FXML
 	private void onAddFactoryProductPressed()
 	{
-		ReadOnlyObjectProperty<Recipe> selectedRecipe = allRecipesList.getSelectionModel().selectedItemProperty();
-
-		if (selectedRecipe.get() != null && !factoryOutputsDatabase.contains(selectedRecipe.get())) {
-			factoryOutputsDatabase.add(new FactoryProduct(selectedRecipe.get()));
-		}
+		factoryOutputsDatabase.add(new FactoryProduct(allProductsList.getSelectionModel().getSelectedItem()));
 	}
 
 	@FXML
@@ -184,17 +189,17 @@ public class MainWindow extends VBox
 	}
 
 	@FXML
-	private void filterRecipesList()
+	private void filterProductsList()
 	{
-		if (((SortedList<Recipe>) allRecipesList.getItems()).getSource() instanceof FilteredList<?>) {
+		if (((SortedList<String>) allProductsList.getItems()).getSource() instanceof FilteredList<?>) {
 			@SuppressWarnings("unchecked")
-			FilteredList<Recipe> filteredList = (FilteredList<Recipe>) ((SortedList<Recipe>) allRecipesList.getItems()).getSource();
-			filteredList.setPredicate(new Predicate<Recipe>()
+			FilteredList<String> filteredList = (FilteredList<String>) ((SortedList<String>) allProductsList.getItems()).getSource();
+			filteredList.setPredicate(new Predicate<String>()
 			{
 				@Override
-				public boolean test(Recipe recipe)
+				public boolean test(String productName)
 				{
-					return recipe.getName().contains(allRecipesFilter.getText());
+					return productName.contains(allProductsFilter.getText());
 				}
 			});
 		}
@@ -204,9 +209,17 @@ public class MainWindow extends VBox
 	{
 		ArrayList<FactoryIntermediary> intermediaries = new ArrayList<FactoryIntermediary>();
 
+		// TODO allow for expensive recipes
+		boolean useExpensiveRecipes = false;
+		
 		for (FactoryProduct product : factoryOutputsDatabase) {
-			// TODO allow for expensive recipes
-			intermediaries.add(new FactoryIntermediary(product, product.getName(), product.getProductionRatePerSecond(), allRecipesDatabase, false));
+			for (Recipe recipe : allRecipesDatabase) {
+				if (recipe.getProducts(useExpensiveRecipes).containsKey(product.getProductName())) {
+					intermediaries.add(new FactoryIntermediary(recipe, product.getProductName(), product.getProductionRatePerSecond(), allRecipesDatabase, useExpensiveRecipes));
+					// TODO do better then just using the first recipe we find
+					break;
+				}
+			}
 		}
 
 		factoryIntermediariesDatabase.setAll(intermediaries);
