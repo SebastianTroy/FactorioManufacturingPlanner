@@ -8,11 +8,11 @@ import java.util.function.Predicate;
 
 import org.json.simple.parser.ParseException;
 
+import application.manufacturingPlanner.FactoryInput;
 import application.manufacturingPlanner.FactoryIntermediary;
 import application.manufacturingPlanner.FactoryProduct;
 import application.manufacturingPlanner.Recipe;
 import application.recipeParser.RecipesParser;
-import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -24,6 +24,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
@@ -39,6 +40,7 @@ import javafx.util.converter.DoubleStringConverter;
 
 public class MainWindow extends VBox
 {
+	// ----- menu bar -----
 	@FXML
 	MenuItem loadRecipiesButton;
 	@FXML
@@ -46,6 +48,7 @@ public class MainWindow extends VBox
 	@FXML
 	MenuItem darkCssButton;
 
+	// ----- factory setup -----
 	@FXML
 	TextField allProductsFilter;
 	@FXML
@@ -64,6 +67,15 @@ public class MainWindow extends VBox
 	TableColumn<FactoryProduct, FactoryProduct.ProductionRateUnit> factoryProductsTableProductionRateUnitColumn;
 
 	@FXML
+	ListView<String> selectedOptionalInputsList;
+	@FXML
+	Button addOptionalFactoryInput;
+	@FXML
+	Button removeOptionalFactoryInput;
+
+	
+	// ----- factory details -----
+	@FXML
 	TreeTableView<FactoryIntermediary> factoryIntermediariesTable;
 	@FXML
 	TreeTableColumn<FactoryIntermediary, String> factoryIntermediariesTableIntermediaryName;
@@ -71,33 +83,39 @@ public class MainWindow extends VBox
 	TreeTableColumn<FactoryIntermediary, String> factoryIntermediariesTableIntermediaryItemName;
 	@FXML
 	TreeTableColumn<FactoryIntermediary, Double> factoryIntermediariesTableCountPerSecond;
+	
+	@FXML
+	TableView<FactoryInput> factoryInputsTable;
+	@FXML
+	TableColumn<FactoryInput, String> factoryInputssTableItemNameColumn;
+	@FXML
+	TableColumn<FactoryInput, Double> factoryInputsTableInputRateColumn;
 
 	private ObservableList<Recipe> allRecipesDatabase = FXCollections.observableArrayList();
 	private ObservableList<String> allProductsDatabase = FXCollections.observableArrayList();
-	private ObservableList<FactoryProduct> factoryOutputsDatabase = FXCollections.observableArrayList();
-	private ObservableList<FactoryIntermediary> factoryIntermediariesDatabase = FXCollections.observableArrayList();
+	private ObservableList<String> selectedOptionalInputsDatabase = FXCollections.observableArrayList();
+	private ObservableList<FactoryProduct> selectedOutputsDatabase = FXCollections.observableArrayList();
+	private ObservableList<FactoryIntermediary> calculatedIntermediariesDatabase = FXCollections.observableArrayList();
+	private ObservableList<FactoryInput> calculatedInputsDatabase = FXCollections.observableArrayList();
 
 	@FXML
 	void initialize()
 	{
-		allProductsList.setItems(new SortedList<String>(new FilteredList<String>(allProductsDatabase, p -> true), (String a, String b) -> {
-			return a.compareTo(b);
-		}));
+		setTextEditToFilterListView(allProductsList, allProductsDatabase, allProductsFilter);
+		setTextEditToFilterListView(allProductsList, allProductsDatabase, allProductsFilter);
 
-		allProductsFilter.textProperty().addListener(new ChangeListener<String>()
-		{
-			@Override
-			public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue)
-			{
-				filterProductsList();
-			}
-		});
-
-		factoryOutputsDatabase.addListener((ListChangeListener.Change<? extends FactoryProduct> c) -> {
+		selectedOutputsDatabase.addListener((ListChangeListener.Change<? extends FactoryProduct> c) -> {
 			updateFactory();
 		});
-
-		factoryProductsTable.setItems(factoryOutputsDatabase);
+		selectedOptionalInputsDatabase.addListener((ListChangeListener.Change<? extends String> c) -> {
+			updateFactory();
+		});
+		
+		allProductsList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+		factoryProductsTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+		selectedOptionalInputsList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+		
+		factoryProductsTable.setItems(selectedOutputsDatabase);
 		factoryProductsTableProductNameColumn.setCellValueFactory(new PropertyValueFactory<FactoryProduct, String>("productName"));
 		factoryProductsTableProductionRateColumn.setCellValueFactory(new PropertyValueFactory<FactoryProduct, Double>("productionRate"));
 		factoryProductsTableProductionRateColumn.setCellFactory(TextFieldTableCell.<FactoryProduct, Double> forTableColumn(new DoubleStringConverter()));
@@ -111,11 +129,17 @@ public class MainWindow extends VBox
 			event.getRowValue().setProductionRateUnit(event.getNewValue());
 			updateFactory();
 		});
+		
+		selectedOptionalInputsList.setItems(selectedOptionalInputsDatabase);
 
 		factoryIntermediariesTable.setShowRoot(false);
 		factoryIntermediariesTableIntermediaryName.setCellValueFactory(new TreeItemPropertyValueFactory<FactoryIntermediary, String>("name"));
 		factoryIntermediariesTableIntermediaryItemName.setCellValueFactory(new TreeItemPropertyValueFactory<FactoryIntermediary, String>("itemName"));
 		factoryIntermediariesTableCountPerSecond.setCellValueFactory(new TreeItemPropertyValueFactory<FactoryIntermediary, Double>("requiredIntermediariesPerSecond"));
+		
+		factoryInputsTable.setItems(calculatedInputsDatabase);
+		factoryInputssTableItemNameColumn.setCellValueFactory(new PropertyValueFactory<FactoryInput, String>("itemName"));
+		factoryInputsTableInputRateColumn.setCellValueFactory(new PropertyValueFactory<FactoryInput, Double>("itemsPerSecond"));
 	}
 
 	@FXML
@@ -161,6 +185,8 @@ public class MainWindow extends VBox
 	@FXML
 	private void onDefaultCssClicked()
 	{
+		// TODO getScene() returns null...
+		
 		getScene().getStylesheets().remove(getClass().getResource("dark.css").toExternalForm());
 		getScene().getStylesheets().add(getClass().getResource("default.css").toExternalForm());
 	}
@@ -175,36 +201,67 @@ public class MainWindow extends VBox
 	@FXML
 	private void onAddFactoryProductPressed()
 	{
-		factoryOutputsDatabase.add(new FactoryProduct(allProductsList.getSelectionModel().getSelectedItem()));
+		allProductsList.getSelectionModel().getSelectedItems().forEach(item -> {
+			selectedOutputsDatabase.add(new FactoryProduct(item));
+		});		
 	}
 
 	@FXML
 	private void onRemoveFactoryProductPressed()
 	{
-		ReadOnlyObjectProperty<FactoryProduct> selectedRecipe = factoryProductsTable.getSelectionModel().selectedItemProperty();
-
-		if (selectedRecipe.get() != null) {
-			factoryOutputsDatabase.remove(selectedRecipe.get());
-		}
+		// create copy of list so that we don't try to iterate and remove from our selectionModel at the same time!
+		new ArrayList<FactoryProduct>(factoryProductsTable.getSelectionModel().getSelectedItems()).forEach(item -> {
+			selectedOutputsDatabase.remove(item);
+		});		
+	}
+	
+	@FXML
+	private void onAddOptionalFactoryInputPressed()
+	{
+		allProductsList.getSelectionModel().getSelectedItems().forEach(item -> {
+			selectedOptionalInputsDatabase.add(item);
+		});		
 	}
 
 	@FXML
-	private void filterProductsList()
+	private void onRemoveoptionalFactoryInputPressed()
 	{
-		if (((SortedList<String>) allProductsList.getItems()).getSource() instanceof FilteredList<?>) {
-			@SuppressWarnings("unchecked")
-			FilteredList<String> filteredList = (FilteredList<String>) ((SortedList<String>) allProductsList.getItems()).getSource();
-			filteredList.setPredicate(new Predicate<String>()
+		// create copy of list so that we don't try to iterate and remove from our selectionModel at the same time!
+		new ArrayList<String>(selectedOptionalInputsList.getSelectionModel().getSelectedItems()).forEach(item -> {
+			selectedOptionalInputsDatabase.remove(item);
+		});		
+	}
+	
+	private void setTextEditToFilterListView(ListView<String> listToFilter, ObservableList<String> listItemsModel, TextField filterInput)
+	{
+		FilteredList<String> filteredFactoryProductsList = new FilteredList<String>(listItemsModel);
+	
+		listToFilter.setItems(new SortedList<String>(filteredFactoryProductsList, (String a, String b) -> {
+			return a.compareTo(b);
+		}));		
+		
+		filterInput.textProperty().addListener(new ChangeListener<String>()
+		{
+			@Override
+			public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue)
+			{
+				filterItemList(filteredFactoryProductsList, newValue);
+			}
+		});
+	}
+
+	private void filterItemList(FilteredList<String> toFilter, String filterText)
+	{
+			toFilter.setPredicate(new Predicate<String>()
 			{
 				@Override
 				public boolean test(String productName)
 				{
-					return productName.contains(allProductsFilter.getText());
+					return productName.contains(filterText);
 				}
 			});
-		}
 	}
-
+	
 	private void updateFactory()
 	{
 		ArrayList<FactoryIntermediary> intermediaries = new ArrayList<FactoryIntermediary>();
@@ -212,22 +269,24 @@ public class MainWindow extends VBox
 		// TODO allow for expensive recipes
 		boolean useExpensiveRecipes = false;
 		
-		for (FactoryProduct product : factoryOutputsDatabase) {
+		for (FactoryProduct product : selectedOutputsDatabase) {
 			for (Recipe recipe : allRecipesDatabase) {
 				if (recipe.getProducts(useExpensiveRecipes).containsKey(product.getProductName())) {
-					intermediaries.add(new FactoryIntermediary(recipe, product.getProductName(), product.getProductionRatePerSecond(), allRecipesDatabase, useExpensiveRecipes));
+					intermediaries.add(new FactoryIntermediary(recipe, product.getProductName(), product.getProductionRatePerSecond(), allRecipesDatabase, selectedOptionalInputsDatabase, useExpensiveRecipes));
 					// TODO do better then just using the first recipe we find
 					break;
 				}
 			}
 		}
 
-		factoryIntermediariesDatabase.setAll(intermediaries);
+		calculatedIntermediariesDatabase.setAll(intermediaries);
 
+		calculatedInputsDatabase.clear();
 		TreeItem<FactoryIntermediary> rootIntermediary = new TreeItem<FactoryIntermediary>();
 		rootIntermediary.setExpanded(true);
-		for (FactoryIntermediary topLevelIntermediary : factoryIntermediariesDatabase) {
+		for (FactoryIntermediary topLevelIntermediary : intermediaries) {
 			topLevelIntermediary.recursivelyAddIntermediariesToTree(rootIntermediary);
+			topLevelIntermediary.recursivelyAccumulateFactoryInputs(calculatedInputsDatabase);
 		}
 		factoryIntermediariesTable.setRoot(rootIntermediary);
 	}

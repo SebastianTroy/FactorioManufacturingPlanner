@@ -5,6 +5,7 @@ import java.util.Collection;
 
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.ObservableList;
 import javafx.scene.control.TreeItem;
 
 /**
@@ -25,23 +26,26 @@ public class FactoryIntermediary
 	 * @param allRecipes - All recipes in the game
 	 * @param usingExpensiveRecipes - <code>true</code> if you're planning an expensive mode factory!
 	 */
-	public FactoryIntermediary(Recipe recipe, String itemName, double requiredProductionPerSecond, Collection<Recipe> allRecipes, boolean usingExpensiveRecipes)
+	public FactoryIntermediary(Recipe recipe, String itemName, double requiredProductionPerSecond, Collection<Recipe> allRecipes, Collection<String> itemsToNotManufacture, boolean usingExpensiveRecipes)
 	{
 		this.intermediaryRecipe = recipe;
 		this.itemName.set(itemName);
 		this.requiredIntermediariesPerSecond.set(requiredProductionPerSecond);
 
-		// for each ingredient we require to be manufactured
-		for (String requiredIngredient : intermediaryRecipe.getIngredients(usingExpensiveRecipes).keySet()) {
-			for (Recipe rawRcipe : allRecipes) {
-				// remove infinite recursion caused by the like of Korvax enrichment or coal liquefaction
-				Recipe possibleIngredientProducer = rawRcipe.getRecipeNetIngredientsAndProducts();
-				if (possibleIngredientProducer.getProducts(usingExpensiveRecipes).containsKey(requiredIngredient)) {
-					// work out how many items are needed per one of this produced
-					double ingredientItemsRequiredPerIntermediary = intermediaryRecipe.getIngredients(usingExpensiveRecipes).get(requiredIngredient).doubleValue();
-					intermediaryDependancies.add(new FactoryIntermediary(possibleIngredientProducer, requiredIngredient, requiredIntermediariesPerSecond.get() * ingredientItemsRequiredPerIntermediary, allRecipes, usingExpensiveRecipes));
-					// TODO support more than just the first recipe we stumble across (some things can be made in more than one way)
-					break;
+		// Check we aren't on the list of items to manufacture 
+		if (!itemsToNotManufacture.contains(itemName)) {
+			// for each ingredient we require to be manufactured
+			for (String requiredIngredient : intermediaryRecipe.getIngredients(usingExpensiveRecipes).keySet()) {
+				for (Recipe rawRcipe : allRecipes) {
+					// remove infinite recursion caused by the like of Korvax enrichment or coal liquefaction
+					Recipe possibleIngredientProducer = rawRcipe.getRecipeNetIngredientsAndProducts();
+					if (possibleIngredientProducer.getProducts(usingExpensiveRecipes).containsKey(requiredIngredient)) {
+						// work out how many items are needed per one of this produced
+						double ingredientItemsRequiredPerIntermediary = intermediaryRecipe.getIngredients(usingExpensiveRecipes).get(requiredIngredient).doubleValue();
+						intermediaryDependancies.add(new FactoryIntermediary(possibleIngredientProducer, requiredIngredient, requiredIntermediariesPerSecond.get() * ingredientItemsRequiredPerIntermediary, allRecipes, itemsToNotManufacture, usingExpensiveRecipes));
+						// TODO support more than just the first recipe we stumble across (some things can be made in more than one way)
+						break;
+					}
 				}
 			}
 		}
@@ -59,6 +63,27 @@ public class FactoryIntermediary
 		parentNode.getChildren().add(thisNode);
 	}
 
+	public void recursivelyAccumulateFactoryInputs(ObservableList<FactoryInput> calculatedInputsDatabase)
+	{
+		if (!intermediaryDependancies.isEmpty()) {
+			intermediaryDependancies.forEach(childNode -> {
+				childNode.recursivelyAccumulateFactoryInputs(calculatedInputsDatabase);
+			});
+		} else {
+			boolean inputAlreadyExisted = false;
+			for (FactoryInput input : calculatedInputsDatabase) {
+				if (input.itemName.get().equals(this.itemName.get())) {
+					input.itemsPerSecond.set(input.itemsPerSecond.get() + this.requiredIntermediariesPerSecond.get());
+					inputAlreadyExisted = true;
+				}
+			}
+			
+			if (!inputAlreadyExisted) {
+				calculatedInputsDatabase.add(new FactoryInput(itemName.get(), requiredIntermediariesPerSecond.get()));
+			}
+		}
+	}
+
 	public String getName()
 	{
 		return intermediaryRecipe.getName();
@@ -72,5 +97,11 @@ public class FactoryIntermediary
 	public double getRequiredIntermediariesPerSecond()
 	{
 		return requiredIntermediariesPerSecond.get();
+	}
+	
+	@Override
+	public String toString()
+	{
+		return itemName.get();
 	}
 }

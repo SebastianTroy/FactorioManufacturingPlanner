@@ -8,7 +8,7 @@ public class FactoryProduct
 {
 	public enum ProductionRateUnit
 	{
-		Second, Minute, Hour,
+		Second, Minute, Hour, CompressedYellowBelt, CompressedRedBelt, CompressedBlueBelt
 	}
 
 	private SimpleStringProperty productName = new SimpleStringProperty();
@@ -19,7 +19,7 @@ public class FactoryProduct
 	{
 		this.productName.set(producName);
 	}
-	
+
 	public double getProductionRate()
 	{
 		return productionRate.get();
@@ -31,19 +31,28 @@ public class FactoryProduct
 
 		switch (productionRateUnit.get()) {
 			case Second:
-				divisor = 1;
+				divisor = 1.0;
 				break;
 			case Minute:
-				divisor = 60;
+				divisor = 60.0;
 				break;
 			case Hour:
-				divisor = 60 * 60;
+				divisor = 60.0 * 60.0;
+				break;
+			case CompressedYellowBelt:
+				divisor = 1.0 / 13.33;
+				break;
+			case CompressedRedBelt:
+				divisor = 1.0 / 26.66;
+				break;
+			case CompressedBlueBelt:
+				divisor = 1.0 / 40.0;
 				break;
 		}
 
 		return productionRate.get() / divisor;
 	}
-	
+
 	public String getProductName()
 	{
 		return productName.get();
