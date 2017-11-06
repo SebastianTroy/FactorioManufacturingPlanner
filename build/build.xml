@@ -19,8 +19,18 @@
 	
 		<mkdir dir="externalLibs" />
 	
+		<copy todir="externalLibs">
+			<fileset dir="C:\Users\troys\eclipse-workspace\FactorioManufacturingPlanner\src\libs">
+				<filename name="json-simple-1.1.1.jar"/>
+			</fileset>
+		</copy>
 	
 		<mkdir dir="project" />
+		<copy todir="project">
+			<fileset dir="C:\Users\troys\eclipse-workspace\FactorioManufacturingPlanner">
+				<include name="resources/**" />
+			</fileset>
+		</copy>
 		<copy todir="project">
 			<fileset dir="C:\Users\troys\eclipse-workspace\FactorioManufacturingPlanner">
 				<include name="src/**" />
@@ -38,6 +48,7 @@
 		<!-- Copy project-libs references -->
 		<copy todir="build/libs">
 			<fileset dir="externalLibs">
+				<include name="json-simple-1.1.1.jar"/>
 			</fileset>
 		</copy>
 	
@@ -49,8 +60,13 @@
 				<include name="**/*"/>
 			</fileset>
 		</copy>
+		<copy todir="build/src">
+			<fileset dir="project/resources">
+				<include name="**/*"/>
+			</fileset>
+		</copy>
 	
-		<javac includeantruntime="false" source="9" target="9" srcdir="build/src" destdir="build/classes" encoding="Cp1252">
+		<javac includeantruntime="false" source="1.8" target="1.8" srcdir="build/src" destdir="build/classes" encoding="Cp1252">
 			<classpath>
 				<fileset dir="build/libs">
 					<include name="*"/>
@@ -61,6 +77,9 @@
 		<!-- Copy over none Java-Files -->
 		<copy todir="build/classes">
 		<fileset dir="project/src">
+			<exclude name="**/*.java"/>
+		</fileset>
+		<fileset dir="project/resources">
 			<exclude name="**/*.java"/>
 		</fileset>
 		</copy>
@@ -87,8 +106,9 @@
 		</fx:resources>
 	
 		<fx:application id="fxApplication"
-			name="Factorio Manufacturing Planner"
+			name="FactorioManufacturingPlanner"
 			mainClass="application.PlannerApplication"
+			toolkit="fx"
 		/>
 	
 		<mkdir dir="build/classes/META-INF" />
@@ -103,13 +123,31 @@
 	
 			<manifest>
 				<attribute name="Implementation-Vendor" value="Troydev"/>
-				<attribute name="Implementation-Title" value="Factorio Manufacturing Planner"/>
+				<attribute name="Implementation-Title" value="FactorioManufacturingPlanner"/>
 				<attribute name="Implementation-Version" value="0.1"/>
 				<attribute name="JavaFX-Feature-Proxy" value="None"/>
 			</manifest>
 		</fx:jar>
 	
 	
+		<mkdir dir="deploy" />
+		<!-- Need to use ${basedir} because somehow the ant task is calculating the directory differently -->
+		<fx:deploy
+			embedJNLP="false"
+			extension="false"
+			width="800" height="600"
+			includeDT="false"
+			offlineAllowed="true"
+			outdir="${basedir}/deploy"
+			outfile="FactorioManufacturingPlanner" nativeBundles="exe"
+			updatemode="background" >
+	
+			<fx:platform basedir="${java.home}"/>
+			<fx:info title="FactorioManufacturingPlanner" vendor="Troydev"/>
+	
+			<fx:application refId="fxApplication"/>
+			<fx:resources refid="appRes"/>
+		</fx:deploy>
 	
 	
 	</target>
