@@ -2,3 +2,7 @@
 json-simple-1.1.1-source.zip
 json-simple-1.1.1.jar
 bin
+/build/deploy
+/build/build
+/build/project
+/build/dist
