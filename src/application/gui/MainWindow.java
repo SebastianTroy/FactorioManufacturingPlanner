@@ -10,7 +10,8 @@ import org.json.simple.parser.ParseException;
 
 import application.manufacturingPlanner.FactoryInput;
 import application.manufacturingPlanner.FactoryIntermediary;
-import application.manufacturingPlanner.FactoryProduct;
+import application.manufacturingPlanner.FactoryOutput;
+import application.manufacturingPlanner.Item;
 import application.manufacturingPlanner.Recipe;
 import application.recipeParser.RecipesParser;
 import javafx.beans.value.ChangeListener;
@@ -58,13 +59,13 @@ public class MainWindow extends VBox
 	@FXML
 	Button removeFactoryProduct;
 	@FXML
-	TableView<FactoryProduct> factoryProductsTable;
+	TableView<FactoryOutput> factoryProductsTable;
 	@FXML
-	TableColumn<FactoryProduct, String> factoryProductsTableProductNameColumn;
+	TableColumn<FactoryOutput, String> factoryProductsTableProductNameColumn;
 	@FXML
-	TableColumn<FactoryProduct, Double> factoryProductsTableProductionRateColumn;
+	TableColumn<FactoryOutput, Double> factoryProductsTableProductionRateColumn;
 	@FXML
-	TableColumn<FactoryProduct, FactoryProduct.ProductionRateUnit> factoryProductsTableProductionRateUnitColumn;
+	TableColumn<FactoryOutput, FactoryOutput.ProductionRateUnit> factoryProductsTableProductionRateUnitColumn;
 
 	@FXML
 	ListView<String> selectedOptionalInputsList;
@@ -94,7 +95,7 @@ public class MainWindow extends VBox
 	private ObservableList<Recipe> allRecipesDatabase = FXCollections.observableArrayList();
 	private ObservableList<String> allProductsDatabase = FXCollections.observableArrayList();
 	private ObservableList<String> selectedOptionalInputsDatabase = FXCollections.observableArrayList();
-	private ObservableList<FactoryProduct> selectedOutputsDatabase = FXCollections.observableArrayList();
+	private ObservableList<FactoryOutput> selectedOutputsDatabase = FXCollections.observableArrayList();
 	private ObservableList<FactoryIntermediary> calculatedIntermediariesDatabase = FXCollections.observableArrayList();
 	private ObservableList<FactoryInput> calculatedInputsDatabase = FXCollections.observableArrayList();
 
@@ -104,7 +105,7 @@ public class MainWindow extends VBox
 		setTextEditToFilterListView(allProductsList, allProductsDatabase, allProductsFilter);
 		setTextEditToFilterListView(allProductsList, allProductsDatabase, allProductsFilter);
 
-		selectedOutputsDatabase.addListener((ListChangeListener.Change<? extends FactoryProduct> c) -> {
+		selectedOutputsDatabase.addListener((ListChangeListener.Change<? extends FactoryOutput> c) -> {
 			updateFactory();
 		});
 		selectedOptionalInputsDatabase.addListener((ListChangeListener.Change<? extends String> c) -> {
@@ -116,15 +117,15 @@ public class MainWindow extends VBox
 		selectedOptionalInputsList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 		
 		factoryProductsTable.setItems(selectedOutputsDatabase);
-		factoryProductsTableProductNameColumn.setCellValueFactory(new PropertyValueFactory<FactoryProduct, String>("productName"));
-		factoryProductsTableProductionRateColumn.setCellValueFactory(new PropertyValueFactory<FactoryProduct, Double>("productionRate"));
-		factoryProductsTableProductionRateColumn.setCellFactory(TextFieldTableCell.<FactoryProduct, Double> forTableColumn(new DoubleStringConverter()));
+		factoryProductsTableProductNameColumn.setCellValueFactory(new PropertyValueFactory<FactoryOutput, String>("name"));
+		factoryProductsTableProductionRateColumn.setCellValueFactory(new PropertyValueFactory<FactoryOutput, Double>("productionRate"));
+		factoryProductsTableProductionRateColumn.setCellFactory(TextFieldTableCell.<FactoryOutput, Double> forTableColumn(new DoubleStringConverter()));
 		factoryProductsTableProductionRateColumn.setOnEditCommit(event -> {
 			event.getRowValue().setProductionRate(event.getNewValue());
 			updateFactory();
 		});
-		factoryProductsTableProductionRateUnitColumn.setCellValueFactory(new PropertyValueFactory<FactoryProduct, FactoryProduct.ProductionRateUnit>("productionRateUnit"));
-		factoryProductsTableProductionRateUnitColumn.setCellFactory(ComboBoxTableCell.<FactoryProduct, FactoryProduct.ProductionRateUnit> forTableColumn(FactoryProduct.ProductionRateUnit.values()));
+		factoryProductsTableProductionRateUnitColumn.setCellValueFactory(new PropertyValueFactory<FactoryOutput, FactoryOutput.ProductionRateUnit>("productionRateUnit"));
+		factoryProductsTableProductionRateUnitColumn.setCellFactory(ComboBoxTableCell.<FactoryOutput, FactoryOutput.ProductionRateUnit> forTableColumn(FactoryOutput.ProductionRateUnit.values()));
 		factoryProductsTableProductionRateUnitColumn.setOnEditCommit(event -> {
 			event.getRowValue().setProductionRateUnit(event.getNewValue());
 			updateFactory();
@@ -202,7 +203,7 @@ public class MainWindow extends VBox
 	private void onAddFactoryProductPressed()
 	{
 		allProductsList.getSelectionModel().getSelectedItems().forEach(item -> {
-			selectedOutputsDatabase.add(new FactoryProduct(item));
+			selectedOutputsDatabase.add(new FactoryOutput(new Item(item)));
 		});		
 	}
 
@@ -210,7 +211,7 @@ public class MainWindow extends VBox
 	private void onRemoveFactoryProductPressed()
 	{
 		// create copy of list so that we don't try to iterate and remove from our selectionModel at the same time!
-		new ArrayList<FactoryProduct>(factoryProductsTable.getSelectionModel().getSelectedItems()).forEach(item -> {
+		new ArrayList<FactoryOutput>(factoryProductsTable.getSelectionModel().getSelectedItems()).forEach(item -> {
 			selectedOutputsDatabase.remove(item);
 		});		
 	}
@@ -269,10 +270,10 @@ public class MainWindow extends VBox
 		// TODO allow for expensive recipes
 		boolean useExpensiveRecipes = false;
 		
-		for (FactoryProduct product : selectedOutputsDatabase) {
+		for (FactoryOutput product : selectedOutputsDatabase) {
 			for (Recipe recipe : allRecipesDatabase) {
-				if (recipe.getProducts(useExpensiveRecipes).containsKey(product.getProductName())) {
-					intermediaries.add(new FactoryIntermediary(recipe, product.getProductName(), product.getProductionRatePerSecond(), allRecipesDatabase, selectedOptionalInputsDatabase, useExpensiveRecipes));
+				if (recipe.getProducts(useExpensiveRecipes).containsKey(product.getName())) {
+					intermediaries.add(new FactoryIntermediary(recipe, product.getName(), product.getProductionRatePerSecond(), allRecipesDatabase, selectedOptionalInputsDatabase, useExpensiveRecipes));
 					// TODO do better then just using the first recipe we find
 					break;
 				}

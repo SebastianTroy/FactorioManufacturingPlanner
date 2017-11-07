@@ -4,20 +4,21 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 
-public class FactoryProduct
+public class FactoryOutput
 {
 	public enum ProductionRateUnit
 	{
 		Second, Minute, Hour, CompressedYellowBelt, CompressedRedBelt, CompressedBlueBelt
 	}
 
-	private SimpleStringProperty productName = new SimpleStringProperty();
+	private SimpleStringProperty name = new SimpleStringProperty();
 	private SimpleDoubleProperty productionRate = new SimpleDoubleProperty(1);
 	private SimpleObjectProperty<ProductionRateUnit> productionRateUnit = new SimpleObjectProperty<ProductionRateUnit>(ProductionRateUnit.Minute);
 
-	public FactoryProduct(String producName)
+	public FactoryOutput(Item producName)
 	{
-		this.productName.set(producName);
+		// TODO change this productName to an ObjectProperty containing the item!
+		this.name.set(producName.name);
 	}
 
 	public double getProductionRate()
@@ -53,9 +54,9 @@ public class FactoryProduct
 		return productionRate.get() / divisor;
 	}
 
-	public String getProductName()
+	public String getName()
 	{
-		return productName.get();
+		return name.get();
 	}
 
 	public ProductionRateUnit getProductionRateUnit()
