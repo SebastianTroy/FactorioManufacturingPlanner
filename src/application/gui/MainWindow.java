@@ -11,6 +11,7 @@ import org.json.simple.parser.ParseException;
 import application.gameFileParser.RecipesParser;
 import application.manufacturingPlanner.FactoryInput;
 import application.manufacturingPlanner.FactoryOutput;
+import application.manufacturingPlanner.FactoryOutputsModel;
 import application.manufacturingPlanner.FactoryProductionStep;
 import application.manufacturingPlanner.Item;
 import application.manufacturingPlanner.ItemsDatabase;
@@ -97,14 +98,14 @@ public class MainWindow extends VBox
 	@FXML
 	TableView<FactoryInput> factoryInputsTable;
 	@FXML
-	TableColumn<FactoryInput, String> factoryInputsTableItemNameColumn;
+	TableColumn<FactoryInput, Item> factoryInputsTableItemColumn;
 	@FXML
 	TableColumn<FactoryInput, Double> factoryInputsTableInputRateColumn;
 
 	private RecipesDatabase allRecipes = new RecipesDatabase();
 	private ItemsDatabase allItems = new ItemsDatabase();
 	private ObservableList<Item> optionalInputsDatabase = FXCollections.observableArrayList();
-	private ObservableList<FactoryOutput> selectedOutputsDatabase = FXCollections.observableArrayList();
+	FactoryOutputsModel selectedOutputsModel = new FactoryOutputsModel();
 	private ObservableList<FactoryProductionStep> calculatedIntermediariesDatabase = FXCollections.observableArrayList();
 	private ObservableList<FactoryInput> calculatedInputsDatabase = FXCollections.observableArrayList();
 
@@ -116,9 +117,8 @@ public class MainWindow extends VBox
 
 		setTextEditToFilterListView(allItemsList, allItems.items, allItemsFilter);
 
-		selectedOutputsDatabase.addListener((ListChangeListener.Change<? extends FactoryOutput> c) -> {
-			updateFactory();
-		});
+		selectedOutputsModel.addModelUpdatedListener(() -> updateFactory());
+
 		optionalInputsDatabase.addListener((ListChangeListener.Change<? extends Item> c) -> {
 			updateFactory();
 		});
@@ -127,7 +127,7 @@ public class MainWindow extends VBox
 		factoryOutputsTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 		optionalInputItemsList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
-		factoryOutputsTable.setItems(selectedOutputsDatabase);
+		factoryOutputsTable.setItems(selectedOutputsModel.getfactoryOutputs());
 		factoryOutputsTableProductNameColumn.setCellValueFactory(new PropertyValueFactory<FactoryOutput, String>("name"));
 		factoryOutputsTableProductionRateColumn.setCellValueFactory(new PropertyValueFactory<FactoryOutput, Double>("productionRate"));
 		factoryOutputsTableProductionRateColumn.setCellFactory(TextFieldTableCell.<FactoryOutput, Double> forTableColumn(new DoubleStringConverter()));
@@ -150,7 +150,7 @@ public class MainWindow extends VBox
 		factoryIntermediariesTableCountPerSecond.setCellValueFactory(new TreeItemPropertyValueFactory<FactoryProductionStep, Double>("requiredIntermediariesPerSecond"));
 
 		factoryInputsTable.setItems(calculatedInputsDatabase);
-		factoryInputsTableItemNameColumn.setCellValueFactory(new PropertyValueFactory<FactoryInput, String>("itemName"));
+		factoryInputsTableItemColumn.setCellValueFactory(new PropertyValueFactory<FactoryInput, Item>("item"));
 		factoryInputsTableInputRateColumn.setCellValueFactory(new PropertyValueFactory<FactoryInput, Double>("itemsPerSecond"));
 	}
 
@@ -214,7 +214,7 @@ public class MainWindow extends VBox
 	private void onAddFactoryProductPressed()
 	{
 		allItemsList.getSelectionModel().getSelectedItems().forEach(item -> {
-			selectedOutputsDatabase.add(new FactoryOutput(item));
+			selectedOutputsModel.addNewOutput(item);
 		});
 	}
 
@@ -222,8 +222,8 @@ public class MainWindow extends VBox
 	private void onRemoveFactoryProductPressed()
 	{
 		// create copy of list so that we don't try to iterate and remove from our selectionModel at the same time!
-		new ArrayList<FactoryOutput>(factoryOutputsTable.getSelectionModel().getSelectedItems()).forEach(item -> {
-			selectedOutputsDatabase.remove(item);
+		new ArrayList<FactoryOutput>(factoryOutputsTable.getSelectionModel().getSelectedItems()).forEach(output -> {
+			selectedOutputsModel.removeOutput(output.item);
 		});
 	}
 
@@ -281,7 +281,7 @@ public class MainWindow extends VBox
 		// TODO allow for expensive recipes
 		boolean useExpensiveRecipes = false;
 
-		for (FactoryOutput product : selectedOutputsDatabase) {
+		for (FactoryOutput product : selectedOutputsModel.getfactoryOutputs()) {
 			for (Recipe recipe : allRecipes.recipes) {
 				if (recipe.getProducts(useExpensiveRecipes).containsKey(product.getName())) {
 					intermediaries.add(new FactoryProductionStep(recipe, product.item, product.getProductionRatePerSecond(), allRecipes, allItems, optionalInputsDatabase, useExpensiveRecipes));

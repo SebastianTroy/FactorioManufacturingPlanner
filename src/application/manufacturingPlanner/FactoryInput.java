@@ -1,22 +1,22 @@
 package application.manufacturingPlanner;
 
 import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.SimpleObjectProperty;
 
 public class FactoryInput
 {
-	public SimpleStringProperty itemName;
+	public SimpleObjectProperty<Item> item;
 	public SimpleDoubleProperty itemsPerSecond;
 
-	public FactoryInput(String name, double itemsPerSecond)
+	public FactoryInput(Item item, double itemsPerSecond)
 	{
-		this.itemName = new SimpleStringProperty(name);
+		this.item = new SimpleObjectProperty<Item>(item);
 		this.itemsPerSecond = new SimpleDoubleProperty(itemsPerSecond);
 	}
 
-	public String getItemName()
+	public Item getItem()
 	{
-		return itemName.get();
+		return item.get();
 	}
 
 	public double getItemsPerSecond()

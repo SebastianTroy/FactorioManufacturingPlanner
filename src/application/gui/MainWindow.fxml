@@ -146,7 +146,7 @@
                                  <children>
                                     <TableView fx:id="factoryInputsTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                       <columns>
-                                        <TableColumn fx:id="factoryInputsTableItemNameColumn" editable="false" prefWidth="75.0" text="Item Name" />
+                                        <TableColumn fx:id="factoryInputsTableItemColumn" editable="false" prefWidth="75.0" text="Item" />
                                         <TableColumn fx:id="factoryInputsTableInputRateColumn" editable="false" prefWidth="75.0" text="Input / sec" />
                                           <TableColumn editable="false" prefWidth="120.0" text="Input Belts" />
                                       </columns>

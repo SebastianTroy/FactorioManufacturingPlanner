@@ -73,14 +73,14 @@ public class FactoryProductionStep
 		} else {
 			boolean inputAlreadyExisted = false;
 			for (FactoryInput input : calculatedInputsDatabase) {
-				if (input.itemName.get().equals(this.itemProduced.get().name)) {
+				if (input.item.get().equals(this.itemProduced.get())) {
 					input.itemsPerSecond.set(input.itemsPerSecond.get() + this.itemProductionPerSecond.get());
 					inputAlreadyExisted = true;
 				}
 			}
 
 			if (!inputAlreadyExisted) {
-				calculatedInputsDatabase.add(new FactoryInput(itemProduced.get().name, itemProductionPerSecond.get()));
+				calculatedInputsDatabase.add(new FactoryInput(itemProduced.get(), itemProductionPerSecond.get()));
 			}
 		}
 	}

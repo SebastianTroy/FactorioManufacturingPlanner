@@ -1,6 +1,7 @@
 package application.manufacturingPlanner;
 
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 
 /**
@@ -42,6 +43,20 @@ public class FactoryOutputsModel
 
 	public void removeOutput(Item toRemove)
 	{
-		factoryOutputs.remove(toRemove);
+		factoryOutputs.removeIf(output -> {
+			return output.item.equals(toRemove);
+		});
+	}
+
+	public void addModelUpdatedListener(Runnable onUpdate)
+	{
+		factoryOutputs.addListener(new ListChangeListener<FactoryOutput>()
+		{
+			@Override
+			public void onChanged(Change<? extends FactoryOutput> c)
+			{
+				onUpdate.run();
+			}
+		});
 	}
 }
