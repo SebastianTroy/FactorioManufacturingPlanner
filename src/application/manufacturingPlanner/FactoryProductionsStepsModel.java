@@ -1,5 +1,5 @@
 package application.manufacturingPlanner;
 
-public class FactoryIntermediatesModel {
+public class FactoryProductionsStepsModel {
 
 }

@@ -6,7 +6,7 @@ public class Item {
 	// 	Fluid
 	// }
 	
-	public String name;
+	public final String name;
 	// TODO type
 	// TODO icon
 	// TODO stack size

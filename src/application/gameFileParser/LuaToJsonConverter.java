@@ -1,4 +1,4 @@
-package application.recipeParser;
+package application.gameFileParser;
 
 import java.io.File;
 import java.io.FileNotFoundException;

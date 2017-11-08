@@ -11,14 +11,16 @@ public class FactoryOutput
 		Second, Minute, Hour, CompressedYellowBelt, CompressedRedBelt, CompressedBlueBelt
 	}
 
+	public Item item;
 	private SimpleStringProperty name = new SimpleStringProperty();
 	private SimpleDoubleProperty productionRate = new SimpleDoubleProperty(1);
 	private SimpleObjectProperty<ProductionRateUnit> productionRateUnit = new SimpleObjectProperty<ProductionRateUnit>(ProductionRateUnit.Minute);
 
-	public FactoryOutput(Item producName)
+	public FactoryOutput(Item item)
 	{
 		// TODO change this productName to an ObjectProperty containing the item!
-		this.name.set(producName.name);
+		this.name.set(item.name);
+		this.item = item;
 	}
 
 	public double getProductionRate()
