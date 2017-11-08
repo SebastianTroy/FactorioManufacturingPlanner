@@ -121,13 +121,13 @@
                            <content>
                               <AnchorPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
                                  <children>
-                                    <TreeTableView fx:id="factoryIntermediariesTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                    <TreeTableView fx:id="factoryProductionStepsTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                       <columns>
-                                        <TreeTableColumn fx:id="factoryIntermediariesTableIntermediaryItem" prefWidth="75.0" text="Item" />
-                                          <TreeTableColumn fx:id="factoryIntermediariesRecipe" prefWidth="75.0" text="Recipe" />
+                                        <TreeTableColumn fx:id="factoryProductionStepsItemColumn" prefWidth="75.0" text="Item" />
+                                          <TreeTableColumn fx:id="factoryProductionStepsRecipeColumn" prefWidth="75.0" text="Recipe" />
                                           <TreeTableColumn prefWidth="75.0" text="Buildings" />
                                         <TreeTableColumn fx:id="factoryIntermediariesTableCountPerSecond" prefWidth="75.0" text="Output / sec" />
-                                          <TreeTableColumn prefWidth="75.0" text="Output Belts" />
+                                          <TreeTableColumn prefWidth="75.0" text="Transport" />
                                       </columns>
                                        <columnResizePolicy>
                                           <TreeTableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
@@ -148,7 +148,7 @@
                                       <columns>
                                         <TableColumn fx:id="factoryInputsTableItemColumn" editable="false" prefWidth="75.0" text="Item" />
                                         <TableColumn fx:id="factoryInputsTableInputRateColumn" editable="false" prefWidth="75.0" text="Input / sec" />
-                                          <TableColumn editable="false" prefWidth="120.0" text="Input Belts" />
+                                          <TableColumn editable="false" prefWidth="120.0" text="Transport" />
                                       </columns>
                                        <columnResizePolicy>
                                           <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />

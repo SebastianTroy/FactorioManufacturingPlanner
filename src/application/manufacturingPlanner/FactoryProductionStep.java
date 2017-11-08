@@ -33,31 +33,35 @@ public class FactoryProductionStep
 		this.itemProduced.set(item);
 		this.itemProductionPerSecond.set(requiredProductionPerSecond);
 
-		// Check we aren't on the list of items to manufacture
-		if (!itemsToNotManufacture.contains(item)) {
+		// Check we aren't on the list of items to manufacture and that we have a recipe
+		if (!itemsToNotManufacture.contains(item) && recipe != null) {
 			// for each ingredient we require to be manufactured
 			for (String requiredIngredientName : recipe.getIngredients(usingExpensiveRecipes).keySet()) {
-				for (Recipe rawRcipe : allRecipes.recipes) {
+				double ingredientItemsRequiredPerIntermediary = recipe.getIngredients(usingExpensiveRecipes).get(requiredIngredientName).doubleValue();
+				ArrayList<Recipe> itemsWhichProduceRequiredIngredient = allRecipes.getRecipesWhichProduce(requiredIngredientName, usingExpensiveRecipes);
+				for (Recipe rawRcipe : itemsWhichProduceRequiredIngredient) {
 					// remove infinite recursion caused by the like of Korvax enrichment or coal liquefaction
 					Recipe possibleIngredientProducer = rawRcipe.getRecipeNetIngredientsAndProducts();
+
 					if (possibleIngredientProducer.getProducts(usingExpensiveRecipes).containsKey(requiredIngredientName)) {
 						// work out how many items are needed per one of this produced
-						double ingredientItemsRequiredPerIntermediary = recipe.getIngredients(usingExpensiveRecipes).get(requiredIngredientName).doubleValue();
 						productionDependancies.add(new FactoryProductionStep(possibleIngredientProducer, allItems.getItemByName(requiredIngredientName), this.itemProductionPerSecond.get() * ingredientItemsRequiredPerIntermediary, allRecipes, allItems, itemsToNotManufacture, usingExpensiveRecipes));
 						// TODO support more than just the first recipe we stumble across (some things can be made in more than one way)
 						break;
 					}
 				}
+				if (itemsWhichProduceRequiredIngredient.isEmpty()) {
+					productionDependancies.add(new FactoryProductionStep(null, allItems.getItemByName(requiredIngredientName), this.itemProductionPerSecond.get() * ingredientItemsRequiredPerIntermediary, allRecipes, allItems, itemsToNotManufacture, usingExpensiveRecipes));
+				}
 			}
 		}
 	}
 
-	public void recursivelyAddIntermediariesToTree(TreeItem<FactoryProductionStep> parentNode)
+	public void recursivelyBuildProductionDependancyTree(TreeItem<FactoryProductionStep> parentNode)
 	{
 		TreeItem<FactoryProductionStep> thisNode = new TreeItem<FactoryProductionStep>(this);
-
 		productionDependancies.forEach(childNode -> {
-			childNode.recursivelyAddIntermediariesToTree(thisNode);
+			childNode.recursivelyBuildProductionDependancyTree(thisNode);
 		});
 
 		thisNode.setExpanded(true);

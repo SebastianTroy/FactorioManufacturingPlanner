@@ -87,11 +87,11 @@ public class MainWindow extends VBox
 
 	// ----- factory details -----
 	@FXML
-	TreeTableView<FactoryProductionStep> factoryIntermediariesTable;
+	TreeTableView<FactoryProductionStep> factoryProductionStepsTable;
 	@FXML
-	TreeTableColumn<FactoryProductionStep, Recipe> factoryIntermediariesRecipe;
+	TreeTableColumn<FactoryProductionStep, Recipe> factoryProductionStepsRecipeColumn;
 	@FXML
-	TreeTableColumn<FactoryProductionStep, Item> factoryIntermediariesTableIntermediaryItem;
+	TreeTableColumn<FactoryProductionStep, Item> factoryProductionStepsItemColumn;
 	@FXML
 	TreeTableColumn<FactoryProductionStep, Double> factoryIntermediariesTableCountPerSecond;
 
@@ -144,9 +144,9 @@ public class MainWindow extends VBox
 
 		optionalInputItemsList.setItems(optionalInputsDatabase);
 
-		factoryIntermediariesTable.setShowRoot(false);
-		factoryIntermediariesRecipe.setCellValueFactory(new TreeItemPropertyValueFactory<FactoryProductionStep, Recipe>("recipe"));
-		factoryIntermediariesTableIntermediaryItem.setCellValueFactory(new TreeItemPropertyValueFactory<FactoryProductionStep, Item>("itemProduced"));
+		factoryProductionStepsTable.setShowRoot(false);
+		factoryProductionStepsRecipeColumn.setCellValueFactory(new TreeItemPropertyValueFactory<FactoryProductionStep, Recipe>("recipe"));
+		factoryProductionStepsItemColumn.setCellValueFactory(new TreeItemPropertyValueFactory<FactoryProductionStep, Item>("itemProduced"));
 		factoryIntermediariesTableCountPerSecond.setCellValueFactory(new TreeItemPropertyValueFactory<FactoryProductionStep, Double>("requiredIntermediariesPerSecond"));
 
 		factoryInputsTable.setItems(calculatedInputsDatabase);
@@ -174,7 +174,6 @@ public class MainWindow extends VBox
 					try {
 						recipes.addAll(recipesParser.parseRecipies(recipesFile));
 					} catch (IOException | ParseException e) {
-						System.out.println("File couldn't be parsed for recipes: " + recipesFile);
 						e.printStackTrace();
 					}
 				}
@@ -186,6 +185,11 @@ public class MainWindow extends VBox
 
 		allRecipes.recipes.forEach(recipe -> {
 			recipe.getProducts(true).forEach((itemName, itemCount) -> {
+				if (!allItems.contains(itemName)) {
+					allItems.items.add(new Item(itemName));
+				}
+			});
+			recipe.getIngredients(true).forEach((itemName, itemCount) -> {
 				if (!allItems.contains(itemName)) {
 					allItems.items.add(new Item(itemName));
 				}
@@ -297,9 +301,9 @@ public class MainWindow extends VBox
 		TreeItem<FactoryProductionStep> rootIntermediary = new TreeItem<FactoryProductionStep>();
 		rootIntermediary.setExpanded(true);
 		for (FactoryProductionStep topLevelIntermediary : intermediaries) {
-			topLevelIntermediary.recursivelyAddIntermediariesToTree(rootIntermediary);
+			topLevelIntermediary.recursivelyBuildProductionDependancyTree(rootIntermediary);
 			topLevelIntermediary.recursivelyAccumulateFactoryInputs(calculatedInputsDatabase);
 		}
-		factoryIntermediariesTable.setRoot(rootIntermediary);
+		factoryProductionStepsTable.setRoot(rootIntermediary);
 	}
 }

@@ -1,5 +1,7 @@
 package application.manufacturingPlanner;
 
+import java.util.ArrayList;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -27,5 +29,16 @@ public class RecipesDatabase
 		}
 
 		return null;
+	}
+	
+	public ArrayList<Recipe> getRecipesWhichProduce(String itemProduced, boolean useExpensiveRecipes)
+	{
+		ArrayList<Recipe> toReturn = new ArrayList<Recipe>();
+		recipes.forEach(recipe -> {
+			if (recipe.getProducts(useExpensiveRecipes).containsKey(itemProduced)) {
+				toReturn.add(recipe);
+			}
+		});
+		return toReturn;
 	}
 }
