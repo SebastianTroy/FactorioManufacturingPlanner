@@ -1,5 +1,6 @@
 package application.manufacturingPlanner;
 
-public class FactoryProductionsStepsModel {
+public class FactoryProductionsStepsModel
+{
 
 }

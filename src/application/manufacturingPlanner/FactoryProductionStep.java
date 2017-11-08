@@ -9,7 +9,8 @@ import javafx.collections.ObservableList;
 import javafx.scene.control.TreeItem;
 
 /**
- * This class exists to represent a process which has to occur within a factory to get a desired product. If a recipe produces multiple items which are required for a factory, each requirement will have its own {@link FactoryProductionStep}.
+ * This class exists to represent a process which has to occur within a factory to get a desired product. If a recipe produces multiple
+ * items which are required for a factory, each requirement will have its own {@link FactoryProductionStep}.
  */
 public class FactoryProductionStep
 {
@@ -32,7 +33,7 @@ public class FactoryProductionStep
 		this.itemProduced.set(item);
 		this.itemProductionPerSecond.set(requiredProductionPerSecond);
 
-		// Check we aren't on the list of items to manufacture 
+		// Check we aren't on the list of items to manufacture
 		if (!itemsToNotManufacture.contains(item)) {
 			// for each ingredient we require to be manufactured
 			for (String requiredIngredientName : recipe.getIngredients(usingExpensiveRecipes).keySet()) {
@@ -77,7 +78,7 @@ public class FactoryProductionStep
 					inputAlreadyExisted = true;
 				}
 			}
-			
+
 			if (!inputAlreadyExisted) {
 				calculatedInputsDatabase.add(new FactoryInput(itemProduced.get().name, itemProductionPerSecond.get()));
 			}
@@ -98,7 +99,7 @@ public class FactoryProductionStep
 	{
 		return itemProductionPerSecond.get();
 	}
-	
+
 	@Override
 	public String toString()
 	{

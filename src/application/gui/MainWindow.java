@@ -76,7 +76,6 @@ public class MainWindow extends VBox
 	@FXML
 	Button removeOptionalItemInput;
 
-	
 	// ----- factory details -----
 	@FXML
 	TreeTableView<FactoryProductionStep> factoryIntermediariesTable;
@@ -86,7 +85,7 @@ public class MainWindow extends VBox
 	TreeTableColumn<FactoryProductionStep, Item> factoryIntermediariesTableIntermediaryItem;
 	@FXML
 	TreeTableColumn<FactoryProductionStep, Double> factoryIntermediariesTableCountPerSecond;
-	
+
 	@FXML
 	TableView<FactoryInput> factoryInputsTable;
 	@FXML
@@ -112,11 +111,11 @@ public class MainWindow extends VBox
 		optionalInputsDatabase.addListener((ListChangeListener.Change<? extends Item> c) -> {
 			updateFactory();
 		});
-		
+
 		allItemsList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 		factoryOutputsTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 		optionalInputItemsList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-		
+
 		factoryOutputsTable.setItems(selectedOutputsDatabase);
 		factoryOutputsTableProductNameColumn.setCellValueFactory(new PropertyValueFactory<FactoryOutput, String>("name"));
 		factoryOutputsTableProductionRateColumn.setCellValueFactory(new PropertyValueFactory<FactoryOutput, Double>("productionRate"));
@@ -131,14 +130,14 @@ public class MainWindow extends VBox
 			event.getRowValue().setProductionRateUnit(event.getNewValue());
 			updateFactory();
 		});
-		
+
 		optionalInputItemsList.setItems(optionalInputsDatabase);
 
 		factoryIntermediariesTable.setShowRoot(false);
 		factoryIntermediariesRecipe.setCellValueFactory(new TreeItemPropertyValueFactory<FactoryProductionStep, Recipe>("recipe"));
 		factoryIntermediariesTableIntermediaryItem.setCellValueFactory(new TreeItemPropertyValueFactory<FactoryProductionStep, Item>("itemProduced"));
 		factoryIntermediariesTableCountPerSecond.setCellValueFactory(new TreeItemPropertyValueFactory<FactoryProductionStep, Double>("requiredIntermediariesPerSecond"));
-		
+
 		factoryInputsTable.setItems(calculatedInputsDatabase);
 		factoryInputsTableItemNameColumn.setCellValueFactory(new PropertyValueFactory<FactoryInput, String>("itemName"));
 		factoryInputsTableInputRateColumn.setCellValueFactory(new PropertyValueFactory<FactoryInput, Double>("itemsPerSecond"));
@@ -181,7 +180,7 @@ public class MainWindow extends VBox
 				}
 			});
 		});
-		
+
 		System.out.println("Num recipies: " + allRecipes.recipes.size());
 		System.out.println("Num Item Types: " + allItems.items.size());
 	}
@@ -190,7 +189,7 @@ public class MainWindow extends VBox
 	private void onDefaultCssClicked()
 	{
 		// TODO getScene() returns null...
-		
+
 		getScene().getStylesheets().remove(getClass().getResource("dark.css").toExternalForm());
 		getScene().getStylesheets().add(getClass().getResource("default.css").toExternalForm());
 	}
@@ -207,7 +206,7 @@ public class MainWindow extends VBox
 	{
 		allItemsList.getSelectionModel().getSelectedItems().forEach(item -> {
 			selectedOutputsDatabase.add(new FactoryOutput(item));
-		});		
+		});
 	}
 
 	@FXML
@@ -216,15 +215,15 @@ public class MainWindow extends VBox
 		// create copy of list so that we don't try to iterate and remove from our selectionModel at the same time!
 		new ArrayList<FactoryOutput>(factoryOutputsTable.getSelectionModel().getSelectedItems()).forEach(item -> {
 			selectedOutputsDatabase.remove(item);
-		});		
+		});
 	}
-	
+
 	@FXML
 	private void onAddOptionalFactoryInputPressed()
 	{
 		allItemsList.getSelectionModel().getSelectedItems().forEach(item -> {
 			optionalInputsDatabase.add(item);
-		});		
+		});
 	}
 
 	@FXML
@@ -233,17 +232,17 @@ public class MainWindow extends VBox
 		// create copy of list so that we don't try to iterate and remove from our selectionModel at the same time!
 		new ArrayList<Item>(optionalInputItemsList.getSelectionModel().getSelectedItems()).forEach(item -> {
 			optionalInputsDatabase.remove(item);
-		});		
+		});
 	}
-	
+
 	private void setTextEditToFilterListView(ListView<Item> listToFilter, ObservableList<Item> listItemsModel, TextField filterInput)
 	{
 		FilteredList<Item> filteredFactoryProductsList = new FilteredList<Item>(listItemsModel);
-	
+
 		listToFilter.setItems(new SortedList<Item>(filteredFactoryProductsList, (Item a, Item b) -> {
 			return a.name.compareTo(b.name);
-		}));		
-		
+		}));
+
 		filterInput.textProperty().addListener(new ChangeListener<String>()
 		{
 			@Override
@@ -256,23 +255,23 @@ public class MainWindow extends VBox
 
 	private void filterItemList(FilteredList<Item> toFilter, String filterText)
 	{
-			toFilter.setPredicate(new Predicate<Item>()
+		toFilter.setPredicate(new Predicate<Item>()
+		{
+			@Override
+			public boolean test(Item item)
 			{
-				@Override
-				public boolean test(Item item)
-				{
-					return item.name.contains(filterText);
-				}
-			});
+				return item.name.contains(filterText);
+			}
+		});
 	}
-	
+
 	private void updateFactory()
 	{
 		ArrayList<FactoryProductionStep> intermediaries = new ArrayList<FactoryProductionStep>();
 
 		// TODO allow for expensive recipes
 		boolean useExpensiveRecipes = false;
-		
+
 		for (FactoryOutput product : selectedOutputsDatabase) {
 			for (Recipe recipe : allRecipes.recipes) {
 				if (recipe.getProducts(useExpensiveRecipes).containsKey(product.getName())) {

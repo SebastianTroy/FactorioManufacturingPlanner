@@ -41,24 +41,24 @@ public class Recipe
 	public Recipe getRecipeNetIngredientsAndProducts()
 	{
 		Recipe netRecipe = new Recipe(this);
-		
+
 		java.util.function.BiConsumer<HashMap<String, Number>, HashMap<String, Number>> func = (ingredients, products) -> {
 			// So we don't get concurrent exceptions, store the things to do then action them afterwards
 			ArrayList<String> keysToRemove = new ArrayList<String>();
 			ArrayList<Pair<String, Double>> netProductsToReAdd = new ArrayList<Pair<String, Double>>();
-			
+
 			// check the ingredients and products for matching items (i.e. same product for recipe used as ingredient)
 			for (String ingredientKey : ingredients.keySet()) {
 				if (products.containsKey(ingredientKey)) {
 					double quantityConsumed = ingredients.get(ingredientKey).doubleValue();
 					double quantityProduced = products.get(ingredientKey).doubleValue();
 					Double netQuantityProduced = Double.valueOf(quantityProduced - quantityConsumed);
-					
+
 					keysToRemove.add(ingredientKey);
 					netProductsToReAdd.add(new Pair<String, Double>(ingredientKey, netQuantityProduced));
 				}
 			}
-			
+
 			// now complete stored actions
 			keysToRemove.forEach(key -> {
 				ingredients.remove(key);
@@ -68,10 +68,10 @@ public class Recipe
 				products.put(pair.getKey(), pair.getValue());
 			});
 		};
-		
+
 		func.accept(netRecipe.normalIngredients, netRecipe.normalProducts);
 		func.accept(netRecipe.expensiveIngredients, netRecipe.expensiveProducts);
-				
+
 		return netRecipe;
 	}
 
