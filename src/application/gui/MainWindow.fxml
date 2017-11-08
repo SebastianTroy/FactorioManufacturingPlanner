@@ -31,7 +31,7 @@
       </MenuBar>
       <Accordion maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
         <panes>
-          <TitledPane animated="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="Factory Settings">
+          <TitledPane fx:id="factorySettingsPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="Factory Settings">
                <content>
                   <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
                      <children>
@@ -113,7 +113,7 @@
                   </VBox>
                </content>
           </TitledPane>
-          <TitledPane animated="false" expanded="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="Factory Details">
+          <TitledPane fx:id="factoryDetailsPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="Factory Details">
                <content>
                   <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
                      <children>

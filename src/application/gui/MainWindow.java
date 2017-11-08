@@ -16,6 +16,7 @@ import application.manufacturingPlanner.Item;
 import application.manufacturingPlanner.ItemsDatabase;
 import application.manufacturingPlanner.Recipe;
 import application.manufacturingPlanner.RecipesDatabase;
+import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -31,6 +32,7 @@ import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TitledPane;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.control.TreeTableView;
@@ -50,6 +52,12 @@ public class MainWindow extends VBox
 	MenuItem defaultCssButton;
 	@FXML
 	MenuItem darkCssButton;
+
+	// ----- accordian panes -----
+	@FXML
+	TitledPane factorySettingsPane;
+	@FXML
+	TitledPane factoryDetailsPane;
 
 	// ----- factory setup -----
 	@FXML
@@ -103,6 +111,9 @@ public class MainWindow extends VBox
 	@FXML
 	void initialize()
 	{
+		Platform.runLater(() -> factorySettingsPane.setExpanded(true));
+		Platform.runLater(() -> onDefaultCssClicked());
+
 		setTextEditToFilterListView(allItemsList, allItems.items, allItemsFilter);
 
 		selectedOutputsDatabase.addListener((ListChangeListener.Change<? extends FactoryOutput> c) -> {
@@ -188,17 +199,15 @@ public class MainWindow extends VBox
 	@FXML
 	private void onDefaultCssClicked()
 	{
-		// TODO getScene() returns null...
-
-		getScene().getStylesheets().remove(getClass().getResource("dark.css").toExternalForm());
-		getScene().getStylesheets().add(getClass().getResource("default.css").toExternalForm());
+		allItemsFilter.getScene().getStylesheets().remove(getClass().getResource("dark.css").toExternalForm());
+		allItemsFilter.getScene().getStylesheets().add(getClass().getResource("default.css").toExternalForm());
 	}
 
 	@FXML
 	private void onDarkCssClicked()
 	{
-		getScene().getStylesheets().remove(getClass().getResource("default.css").toExternalForm());
-		getScene().getStylesheets().add(getClass().getResource("dark.css").toExternalForm());
+		allItemsFilter.getScene().getStylesheets().remove(getClass().getResource("default.css").toExternalForm());
+		allItemsFilter.getScene().getStylesheets().add(getClass().getResource("dark.css").toExternalForm());
 	}
 
 	@FXML
