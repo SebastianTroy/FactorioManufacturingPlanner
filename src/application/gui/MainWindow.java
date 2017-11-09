@@ -44,8 +44,11 @@ import javafx.scene.control.cell.TreeItemPropertyValueFactory;
 import javafx.scene.layout.VBox;
 import javafx.util.converter.DoubleStringConverter;
 
-public class MainWindow extends VBox
+public class MainWindow
 {
+	@FXML
+	VBox root;
+	
 	// ----- menu bar -----
 	@FXML
 	MenuItem loadRecipiesButton;
@@ -203,15 +206,15 @@ public class MainWindow extends VBox
 	@FXML
 	private void onDefaultCssClicked()
 	{
-		allItemsFilter.getScene().getStylesheets().remove(getClass().getResource("dark.css").toExternalForm());
-		allItemsFilter.getScene().getStylesheets().add(getClass().getResource("default.css").toExternalForm());
+		root.getScene().getStylesheets().remove(getClass().getResource("dark.css").toExternalForm());
+		root.getScene().getStylesheets().add(getClass().getResource("default.css").toExternalForm());
 	}
 
 	@FXML
 	private void onDarkCssClicked()
 	{
-		allItemsFilter.getScene().getStylesheets().remove(getClass().getResource("default.css").toExternalForm());
-		allItemsFilter.getScene().getStylesheets().add(getClass().getResource("dark.css").toExternalForm());
+		root.getScene().getStylesheets().remove(getClass().getResource("default.css").toExternalForm());
+		root.getScene().getStylesheets().add(getClass().getResource("dark.css").toExternalForm());
 	}
 
 	@FXML

@@ -8,7 +8,6 @@ import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
-import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 public class PlannerApplication extends Application
@@ -43,26 +42,14 @@ public class PlannerApplication extends Application
 
 	private final void initialiseGUI(Stage primaryStage)
 	{
-		// We'll load our GUI into this variable
-		VBox guiRootNode = null;
-
 		try {
-			// Load the GUI
 			FXMLLoader loader = new FXMLLoader(MainWindow.class.getResource("MainWindow.fxml"));
-			guiRootNode = (VBox) loader.load();
+			loader.load();
+			primaryStage.setScene(new Scene(loader.getRoot()));
 		} catch (IOException e) {
 			e.printStackTrace();
-		}
-
-		// If we were not successful in loading our GUI
-		if (guiRootNode == null) {
 			new Alert(Alert.AlertType.ERROR, "The GUI could not be loaded, exiting application.").showAndWait();
-
 			Platform.exit();
-		} else {
-			// Add our GUI to an unchanging Scene and add that to our stage
-			primaryStage.setScene(new Scene(guiRootNode));
 		}
 	}
-
 }

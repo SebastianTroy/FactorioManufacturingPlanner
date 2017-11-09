@@ -6,7 +6,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.layout.AnchorPane?>
 
-<VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.gui.MainWindow">
+<VBox fx:id="root" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.gui.MainWindow">
    <children>
       <MenuBar maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="NEVER">
         <menus>
@@ -17,12 +17,8 @@
           </Menu>
           <Menu mnemonicParsing="false" text="Help">
             <items>
-                  <RadioMenuItem fx:id="defaultCssButton" mnemonicParsing="false" onAction="#onDefaultCssClicked" text="Default">
-                     <toggleGroup>
-                        <ToggleGroup fx:id="cssGroup" />
-                     </toggleGroup>
-                  </RadioMenuItem>
-                  <RadioMenuItem fx:id="darkCssButton" mnemonicParsing="false" onAction="#onDarkCssClicked" text="Dark" toggleGroup="$cssGroup" />
+                  <MenuItem fx:id="defaultCssButton" mnemonicParsing="false" onAction="#onDefaultCssClicked" text="Default" />
+                <MenuItem fx:id="darkCssButton" mnemonicParsing="false" onAction="#onDarkCssClicked" text="Dark" />
                   <SeparatorMenuItem mnemonicParsing="false" />
               <MenuItem disable="true" mnemonicParsing="false" text="About" />
             </items>
