@@ -14,10 +14,10 @@ public class Recipe
 	}
 
 	private final SimpleStringProperty name = new SimpleStringProperty("");
-	private HashMap<String, Number> normalIngredients = new HashMap<String, Number>();
-	private HashMap<String, Number> normalProducts = new HashMap<String, Number>();
-	private HashMap<String, Number> expensiveIngredients = new HashMap<String, Number>();
-	private HashMap<String, Number> expensiveProducts = new HashMap<String, Number>();
+	private HashMap<Item, Number> normalIngredients = new HashMap<Item, Number>();
+	private HashMap<Item, Number> normalProducts = new HashMap<Item, Number>();
+	private HashMap<Item, Number> expensiveIngredients = new HashMap<Item, Number>();
+	private HashMap<Item, Number> expensiveProducts = new HashMap<Item, Number>();
 	private Facility facilityRequired = Facility.Unknown;
 
 	public Recipe()
@@ -42,20 +42,22 @@ public class Recipe
 	{
 		Recipe netRecipe = new Recipe(this);
 
-		java.util.function.BiConsumer<HashMap<String, Number>, HashMap<String, Number>> func = (ingredients, products) -> {
+		// TODO rename func
+		java.util.function.BiConsumer<HashMap<Item, Number>, HashMap<Item, Number>> func = (ingredients, products) -> {
+			// TODO see if .removeIf() is a better way to do this!
 			// So we don't get concurrent exceptions, store the things to do then action them afterwards
-			ArrayList<String> keysToRemove = new ArrayList<String>();
-			ArrayList<Pair<String, Double>> netProductsToReAdd = new ArrayList<Pair<String, Double>>();
+			ArrayList<Item> keysToRemove = new ArrayList<Item>();
+			ArrayList<Pair<Item, Double>> netProductsToReAdd = new ArrayList<Pair<Item, Double>>();
 
 			// check the ingredients and products for matching items (i.e. same product for recipe used as ingredient)
-			for (String ingredientKey : ingredients.keySet()) {
+			for (Item ingredientKey : ingredients.keySet()) {
 				if (products.containsKey(ingredientKey)) {
 					double quantityConsumed = ingredients.get(ingredientKey).doubleValue();
 					double quantityProduced = products.get(ingredientKey).doubleValue();
 					Double netQuantityProduced = Double.valueOf(quantityProduced - quantityConsumed);
 
 					keysToRemove.add(ingredientKey);
-					netProductsToReAdd.add(new Pair<String, Double>(ingredientKey, netQuantityProduced));
+					netProductsToReAdd.add(new Pair<Item, Double>(ingredientKey, netQuantityProduced));
 				}
 			}
 
@@ -96,7 +98,7 @@ public class Recipe
 		return name.get();
 	}
 
-	public HashMap<String, Number> getIngredients(boolean returnExpensiveIngredientsIfPossible)
+	public HashMap<Item, Number> getIngredients(boolean returnExpensiveIngredientsIfPossible)
 	{
 		if (returnExpensiveIngredientsIfPossible && !expensiveIngredients.isEmpty()) {
 			return expensiveIngredients;
@@ -105,7 +107,7 @@ public class Recipe
 		}
 	}
 
-	public HashMap<String, Number> getProducts(boolean returnExpensiveProductsIfPossible)
+	public HashMap<Item, Number> getProducts(boolean returnExpensiveProductsIfPossible)
 	{
 		if (returnExpensiveProductsIfPossible && !expensiveProducts.isEmpty()) {
 			return expensiveProducts;
@@ -124,7 +126,7 @@ public class Recipe
 		this.facilityRequired = facilityRequiredToProcessRecipe;
 	}
 
-	public void setIngredients(HashMap<String, Number> ingredients, boolean ingredientsAreExpensiveVareity)
+	public void setIngredients(HashMap<Item, Number> ingredients, boolean ingredientsAreExpensiveVareity)
 	{
 		if (ingredientsAreExpensiveVareity) {
 			expensiveIngredients = ingredients;
@@ -133,7 +135,7 @@ public class Recipe
 		}
 	}
 
-	public void setProducts(HashMap<String, Number> products, boolean productsAreExpensiveVareity)
+	public void setProducts(HashMap<Item, Number> products, boolean productsAreExpensiveVareity)
 	{
 		if (productsAreExpensiveVareity) {
 			expensiveProducts = products;

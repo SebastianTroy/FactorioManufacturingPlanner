@@ -12,6 +12,9 @@ public class Item
 	// TODO icon
 	// TODO stack size
 
+	/**
+	 * @deprecated Use the constructor in {@link ItemsDatabase} instead.
+	 */
 	public Item(String name)
 	{
 		this.name = name;

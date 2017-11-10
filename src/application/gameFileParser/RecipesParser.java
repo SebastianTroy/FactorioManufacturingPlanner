@@ -12,11 +12,13 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 
+import application.manufacturingPlanner.Item;
+import application.manufacturingPlanner.ItemsDatabase;
 import application.manufacturingPlanner.Recipe;
 
 public class RecipesParser
 {
-	public ArrayList<Recipe> parseRecipies(File recipiesFile) throws FileNotFoundException, IOException, ParseException
+	public ArrayList<Recipe> parseRecipies(File recipiesFile, ItemsDatabase allItems) throws FileNotFoundException, IOException, ParseException
 	{
 		ArrayList<Recipe> parsedRecipies = new ArrayList<Recipe>();
 
@@ -25,7 +27,7 @@ public class RecipesParser
 		for (Object object : recipiesJson) {
 			if (object instanceof JSONObject) {
 				JSONObject recipieObject = (JSONObject) object;
-				if (!addRecipie(recipieObject, parsedRecipies)) {
+				if (!addRecipie(recipieObject, allItems, parsedRecipies)) {
 					System.out.println("FAILED: " + recipieObject);
 				}
 			} else {
@@ -45,7 +47,7 @@ public class RecipesParser
 	 * 
 	 * @return <code>true</code> if the recipe was added to the list of parsed recipes, otherwise <code>false</code>.
 	 */
-	private boolean addRecipie(JSONObject recipeObject, ArrayList<Recipe> parsedRecipies)
+	private boolean addRecipie(JSONObject recipeObject, ItemsDatabase allItems, ArrayList<Recipe> parsedRecipies)
 	{
 		// used for all recipes
 		Object typeObject = recipeObject.get("type");
@@ -93,13 +95,13 @@ public class RecipesParser
 				}
 
 				if (normalDataObject instanceof JSONObject) {
-					populateRecipeFromHashMap((JSONObject) normalDataObject, recipe, false);
+					populateRecipeFromHashMap((JSONObject) normalDataObject, allItems, recipe, false);
 				} else {
-					populateRecipeFromHashMap(recipeObject, recipe, false);
+					populateRecipeFromHashMap(recipeObject, allItems, recipe, false);
 				}
 
 				if (expensiveDataObject instanceof JSONObject) {
-					populateRecipeFromHashMap((JSONObject) expensiveDataObject, recipe, true);
+					populateRecipeFromHashMap((JSONObject) expensiveDataObject, allItems, recipe, true);
 				}
 
 				if (recipe.isValid()) {
@@ -111,33 +113,33 @@ public class RecipesParser
 		return false;
 	}
 
-	private void populateRecipeFromHashMap(JSONObject recipeComponents, Recipe toPopulate, boolean populateExpensiveComponents)
+	private void populateRecipeFromHashMap(JSONObject recipeComponents, ItemsDatabase allItems, Recipe toPopulate, boolean populateExpensiveComponents)
 	{
 		Object ingredientsObject = recipeComponents.get("ingredients");
 		Object resultObject = recipeComponents.get("result");
 		Object resultsObject = recipeComponents.get("results");
 
 		if (ingredientsObject instanceof Map) {
-			toPopulate.setIngredients(convertItemCountMapToHashMap((Map<?, ?>) ingredientsObject), populateExpensiveComponents);
+			toPopulate.setIngredients(convertItemCountMapToHashMap((Map<?, ?>) ingredientsObject, allItems), populateExpensiveComponents);
 		}
 
 		if (resultObject instanceof String) {
-			HashMap<String, Number> products = new HashMap<String, Number>();
-			products.put((String) resultObject, 1);
+			HashMap<Item, Number> products = new HashMap<Item, Number>();
+			products.put(allItems.getItem((String) resultObject), 1);
 			toPopulate.setProducts(products, populateExpensiveComponents);
 		} else if (resultsObject instanceof Map) {
-			toPopulate.setProducts(convertItemCountMapToHashMap((Map<?, ?>) resultsObject), populateExpensiveComponents);
+			toPopulate.setProducts(convertItemCountMapToHashMap((Map<?, ?>) resultsObject, allItems), populateExpensiveComponents);
 		} else if (resultsObject instanceof JSONArray) {
-			toPopulate.setProducts(convertItemProbabilityArrayToHashMap((JSONArray) resultsObject), populateExpensiveComponents);
+			toPopulate.setProducts(convertItemProbabilityArrayToHashMap((JSONArray) resultsObject, allItems), populateExpensiveComponents);
 		}
 	}
 
-	private HashMap<String, Number> convertItemCountMapToHashMap(Map<?, ?> jsonMap)
+	private HashMap<Item, Number> convertItemCountMapToHashMap(Map<?, ?> jsonMap, ItemsDatabase allItems)
 	{
-		HashMap<String, Number> hashMap = new HashMap<String, Number>();
+		HashMap<Item, Number> hashMap = new HashMap<Item, Number>();
 		jsonMap.forEach((key, value) -> {
 			if (key instanceof String && value instanceof Number) {
-				hashMap.put((String) key, (Number) value);
+				hashMap.put(allItems.getItem((String) key), (Number) value);
 			} else {
 				assert key instanceof String && value instanceof Number : "Expected Map<String, Number>, got Map<" + key.getClass().getName() + ", " + value.getClass().getName() + ">";
 			}
@@ -146,9 +148,9 @@ public class RecipesParser
 		return hashMap;
 	}
 
-	private HashMap<String, Number> convertItemProbabilityArrayToHashMap(JSONArray jsonArray)
+	private HashMap<Item, Number> convertItemProbabilityArrayToHashMap(JSONArray jsonArray, ItemsDatabase allItems)
 	{
-		HashMap<String, Number> hashMap = new HashMap<String, Number>();
+		HashMap<Item, Number> hashMap = new HashMap<Item, Number>();
 
 		for (Object productObject : jsonArray) {
 			StringBuilder productNameBuilder = new StringBuilder();
@@ -172,7 +174,7 @@ public class RecipesParser
 			double productProbability = Double.longBitsToDouble(atomicProductProbability.longValue());
 			double productQuantity = Double.longBitsToDouble(atomicProductQuantity.longValue());
 			if (!productName.isEmpty() && productProbability * productQuantity != 0) {
-				hashMap.put(productName, Double.valueOf(productProbability * productQuantity));
+				hashMap.put(allItems.getItem(productName), Double.valueOf(productProbability * productQuantity));
 			} else {
 				assert !productName.isEmpty() && productProbability * productQuantity != 0 : "Name[" + productName + "] Quantity[" + String.valueOf(productQuantity) + "] Probability[" + String.valueOf(productProbability) + "]";
 			}

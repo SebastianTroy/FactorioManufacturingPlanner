@@ -2,7 +2,7 @@ package application;
 
 import java.io.IOException;
 
-import application.gui.MainWindow;
+import application.gui.MainWindowController;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -43,7 +43,7 @@ public class PlannerApplication extends Application
 	private final void initialiseGUI(Stage primaryStage)
 	{
 		try {
-			FXMLLoader loader = new FXMLLoader(MainWindow.class.getResource("MainWindow.fxml"));
+			FXMLLoader loader = new FXMLLoader(MainWindowController.class.getResource("MainWindow.fxml"));
 			loader.load();
 			primaryStage.setScene(new Scene(loader.getRoot()));
 		} catch (IOException e) {

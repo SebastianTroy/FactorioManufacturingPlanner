@@ -3,7 +3,6 @@ package application.manufacturingPlanner;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
 import javafx.scene.control.TreeItem;
@@ -14,45 +13,55 @@ import javafx.scene.control.TreeItem;
  */
 public class FactoryProductionStep
 {
-	private SimpleObjectProperty<Recipe> recipe = new SimpleObjectProperty<Recipe>();
-	private SimpleObjectProperty<Item> itemProduced = new SimpleObjectProperty<Item>();
-	private SimpleDoubleProperty itemProductionPerSecond = new SimpleDoubleProperty();
+	private final Item itemProduced;
+	private final double itemProductionPerSecond;
+	private final ArrayList<Recipe> potentialRecipes;
+
+	private final RecipesDatabase allRecipes;
+	private final Collection<Item> preProducedItems;
+	private final boolean usingExpensiveRecipes;
+	
+	private SimpleObjectProperty<Recipe> selectedRecipe = new SimpleObjectProperty<Recipe>();
 	private ArrayList<FactoryProductionStep> productionDependancies = new ArrayList<FactoryProductionStep>();
 
 	/**
 	 * 
-	 * @param recipe - The recipe this intermediary represents
 	 * @param item - The item this intermediary is producing
 	 * @param requiredProductionPerSecond - The number of items per second this intermediary needs to products
 	 * @param allRecipes - All recipes in the game
+	 * @param preProducedItems - Optional items which will be provided, meaning they don't need producing, meaning they will be leaf nodes like raw materials
 	 * @param usingExpensiveRecipes - <code>true</code> if you're planning an expensive mode factory!
 	 */
-	public FactoryProductionStep(Recipe recipe, Item item, double requiredProductionPerSecond, RecipesDatabase allRecipes, ItemsDatabase allItems, Collection<Item> itemsToNotManufacture, boolean usingExpensiveRecipes)
+	public FactoryProductionStep(Item item, double requiredProductionPerSecond, RecipesDatabase allRecipes, Collection<Item> preProducedItems, boolean usingExpensiveRecipes)
 	{
-		this.recipe.set(recipe);
-		this.itemProduced.set(item);
-		this.itemProductionPerSecond.set(requiredProductionPerSecond);
+		this.itemProduced = item;
+		this.itemProductionPerSecond = requiredProductionPerSecond;
+		this.potentialRecipes = allRecipes.getRecipesWhichProduce(item, usingExpensiveRecipes);
+		
+		this.allRecipes = allRecipes;
+		this.preProducedItems = preProducedItems;
+		this.usingExpensiveRecipes = usingExpensiveRecipes;
 
-		// Check we aren't on the list of items to manufacture and that we have a recipe
-		if (!itemsToNotManufacture.contains(item) && recipe != null) {
+		if (!potentialRecipes.isEmpty()) {
+			this.selectedRecipe.set(potentialRecipes.get(0));
+			updateChildDependancies(this.selectedRecipe.get());
+		}
+
+		selectedRecipe.addListener((listener, oldRecipe, newRecipe) -> {
+			updateChildDependancies(newRecipe);
+		});
+	}
+
+	public void updateChildDependancies(Recipe selectedRecipe)
+	{
+		productionDependancies.clear();
+
+		// Check we aren't on the list of pre-prepared items and that we aren't a raw material
+		if (!preProducedItems.contains(itemProduced) && selectedRecipe != null) {
 			// for each ingredient we require to be manufactured
-			for (String requiredIngredientName : recipe.getIngredients(usingExpensiveRecipes).keySet()) {
-				double ingredientItemsRequiredPerIntermediary = recipe.getIngredients(usingExpensiveRecipes).get(requiredIngredientName).doubleValue();
-				ArrayList<Recipe> itemsWhichProduceRequiredIngredient = allRecipes.getRecipesWhichProduce(requiredIngredientName, usingExpensiveRecipes);
-				for (Recipe rawRcipe : itemsWhichProduceRequiredIngredient) {
-					// remove infinite recursion caused by the like of Korvax enrichment or coal liquefaction
-					Recipe possibleIngredientProducer = rawRcipe.getRecipeNetIngredientsAndProducts();
-
-					if (possibleIngredientProducer.getProducts(usingExpensiveRecipes).containsKey(requiredIngredientName)) {
-						// work out how many items are needed per one of this produced
-						productionDependancies.add(new FactoryProductionStep(possibleIngredientProducer, allItems.getItemByName(requiredIngredientName), this.itemProductionPerSecond.get() * ingredientItemsRequiredPerIntermediary, allRecipes, allItems, itemsToNotManufacture, usingExpensiveRecipes));
-						// TODO support more than just the first recipe we stumble across (some things can be made in more than one way)
-						break;
-					}
-				}
-				if (itemsWhichProduceRequiredIngredient.isEmpty()) {
-					productionDependancies.add(new FactoryProductionStep(null, allItems.getItemByName(requiredIngredientName), this.itemProductionPerSecond.get() * ingredientItemsRequiredPerIntermediary, allRecipes, allItems, itemsToNotManufacture, usingExpensiveRecipes));
-				}
+			for (Item requiredIngredient : selectedRecipe.getIngredients(usingExpensiveRecipes).keySet()) {
+				double ingredientCountPerItemProduced = selectedRecipe.getIngredients(usingExpensiveRecipes).get(requiredIngredient).doubleValue();		
+				productionDependancies.add(new FactoryProductionStep(requiredIngredient, itemProductionPerSecond * ingredientCountPerItemProduced, allRecipes, preProducedItems, usingExpensiveRecipes));
 			}
 		}
 	}
@@ -77,36 +86,36 @@ public class FactoryProductionStep
 		} else {
 			boolean inputAlreadyExisted = false;
 			for (FactoryInput input : calculatedInputsDatabase) {
-				if (input.item.get().equals(this.itemProduced.get())) {
-					input.itemsPerSecond.set(input.itemsPerSecond.get() + this.itemProductionPerSecond.get());
+				if (input.item.get().equals(this.itemProduced)) {
+					input.itemsPerSecond.set(input.itemsPerSecond.get() + itemProductionPerSecond);
 					inputAlreadyExisted = true;
 				}
 			}
 
 			if (!inputAlreadyExisted) {
-				calculatedInputsDatabase.add(new FactoryInput(itemProduced.get(), itemProductionPerSecond.get()));
+				calculatedInputsDatabase.add(new FactoryInput(itemProduced, itemProductionPerSecond));
 			}
 		}
 	}
 
 	public Recipe getRecipe()
 	{
-		return recipe.get();
+		return selectedRecipe.get();
 	}
 
 	public Item getItemProduced()
 	{
-		return itemProduced.get();
+		return itemProduced;
 	}
 
 	public double getRequiredIntermediariesPerSecond()
 	{
-		return itemProductionPerSecond.get();
+		return itemProductionPerSecond;
 	}
 
 	@Override
 	public String toString()
 	{
-		return itemProduced.get().name;
+		return itemProduced.name;
 	}
 }

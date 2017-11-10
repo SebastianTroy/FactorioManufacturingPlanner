@@ -27,6 +27,7 @@ import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
@@ -44,7 +45,7 @@ import javafx.scene.control.cell.TreeItemPropertyValueFactory;
 import javafx.scene.layout.VBox;
 import javafx.util.converter.DoubleStringConverter;
 
-public class MainWindow
+public class MainWindowController
 {
 	@FXML
 	VBox root;
@@ -64,6 +65,9 @@ public class MainWindow
 	TitledPane factoryDetailsPane;
 
 	// ----- factory setup -----
+	@FXML
+	CheckBox useExpensiveRecipesCheckBox;
+	
 	@FXML
 	TextField allItemsFilter;
 	@FXML
@@ -175,7 +179,7 @@ public class MainWindow
 			for (File recipesFile : recipiesDirectory.listFiles()) {
 				if (recipesFile.isFile()) {
 					try {
-						recipes.addAll(recipesParser.parseRecipies(recipesFile));
+						recipes.addAll(recipesParser.parseRecipies(recipesFile, allItems));
 					} catch (IOException | ParseException e) {
 						e.printStackTrace();
 					}
@@ -184,23 +188,6 @@ public class MainWindow
 		}
 
 		allRecipes.recipes.setAll(recipes);
-		allItems.items.clear();
-
-		allRecipes.recipes.forEach(recipe -> {
-			recipe.getProducts(true).forEach((itemName, itemCount) -> {
-				if (!allItems.contains(itemName)) {
-					allItems.items.add(new Item(itemName));
-				}
-			});
-			recipe.getIngredients(true).forEach((itemName, itemCount) -> {
-				if (!allItems.contains(itemName)) {
-					allItems.items.add(new Item(itemName));
-				}
-			});
-		});
-
-		System.out.println("Num recipies: " + allRecipes.recipes.size());
-		System.out.println("Num Item Types: " + allItems.items.size());
 	}
 
 	@FXML
@@ -281,21 +268,13 @@ public class MainWindow
 		});
 	}
 
+	@FXML
 	private void updateFactory()
 	{
 		ArrayList<FactoryProductionStep> intermediaries = new ArrayList<FactoryProductionStep>();
 
-		// TODO allow for expensive recipes
-		boolean useExpensiveRecipes = false;
-
 		for (FactoryOutput product : selectedOutputsModel.getfactoryOutputs()) {
-			for (Recipe recipe : allRecipes.recipes) {
-				if (recipe.getProducts(useExpensiveRecipes).containsKey(product.getName())) {
-					intermediaries.add(new FactoryProductionStep(recipe, product.item, product.getProductionRatePerSecond(), allRecipes, allItems, optionalInputsDatabase, useExpensiveRecipes));
-					// TODO do better then just using the first recipe we find
-					break;
-				}
-			}
+			intermediaries.add(new FactoryProductionStep(product.item, product.getProductionRatePerSecond(), allRecipes, optionalInputsDatabase, useExpensiveRecipesCheckBox.isSelected()));
 		}
 
 		calculatedIntermediariesDatabase.setAll(intermediaries);

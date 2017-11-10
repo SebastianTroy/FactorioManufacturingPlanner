@@ -6,7 +6,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.layout.AnchorPane?>
 
-<VBox fx:id="root" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.gui.MainWindow">
+<VBox fx:id="root" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.gui.MainWindowController">
    <children>
       <MenuBar maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="NEVER">
         <menus>
@@ -31,7 +31,20 @@
                <content>
                   <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
                      <children>
-                        <TitledPane disable="true" expanded="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="Advanced Options" VBox.vgrow="SOMETIMES" />
+                        <TitledPane expanded="false" text="Advanced Options" VBox.vgrow="SOMETIMES">
+                           <content>
+                              <GridPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
+                                <columnConstraints>
+                                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                </columnConstraints>
+                                <rowConstraints>
+                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                </rowConstraints>
+                                 <children>
+                                    <CheckBox fx:id="useExpensiveRecipesCheckBox" mnemonicParsing="false" onAction="#updateFactory" text="CheckBox" />
+                                 </children>
+                              </GridPane>
+                           </content></TitledPane>
                         <TitledPane collapsible="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="Options" VBox.vgrow="SOMETIMES">
                            <content>
                               <AnchorPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
@@ -76,9 +89,9 @@
                                                 </VBox>
                                              </children>
                                           </VBox>
-                                          <VBox spacing="5.0" HBox.hgrow="ALWAYS">
+                                          <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="5.0" HBox.hgrow="ALWAYS">
                                              <children>
-                                                <TitledPane animated="false" collapsible="false" text="Items to manufacture" VBox.vgrow="ALWAYS">
+                                                <TitledPane animated="false" collapsible="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="Items to manufacture" VBox.vgrow="ALWAYS">
                                                    <content>
                                                       <TableView fx:id="factoryOutputsTable" editable="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS">
                                                          <columns>
@@ -92,7 +105,7 @@
                                                       </TableView>
                                                    </content>
                                                 </TitledPane>
-                                                <TitledPane animated="false" collapsible="false" text="Optional pre-prepared components">
+                                                <TitledPane animated="false" collapsible="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="Optional pre-prepared components">
                                                    <content>
                                                       <ListView fx:id="optionalInputItemsList" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" />
                                                    </content>

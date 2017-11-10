@@ -31,7 +31,7 @@ public class RecipesDatabase
 		return null;
 	}
 	
-	public ArrayList<Recipe> getRecipesWhichProduce(String itemProduced, boolean useExpensiveRecipes)
+	public ArrayList<Recipe> getRecipesWhichProduce(Item itemProduced, boolean useExpensiveRecipes)
 	{
 		ArrayList<Recipe> toReturn = new ArrayList<Recipe>();
 		recipes.forEach(recipe -> {
