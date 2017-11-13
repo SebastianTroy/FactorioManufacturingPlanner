@@ -11,7 +11,7 @@ public class ItemsDatabase
 	{
 		return contains(item.name);
 	}
-	
+
 	public boolean contains(String itemName)
 	{
 		for (Item item : items) {
@@ -31,15 +31,15 @@ public class ItemsDatabase
 		}
 		return null;
 	}
-	
+
 	/**
-	 * Ensures only one instance of any given item type exists and that this
-	 * database contains every instance of item.
+	 * Ensures only one instance of any given item type exists and that this database contains every instance of item.
 	 * 
 	 * Constructs a new {@link Item} if it isn't already in the database.
 	 */
 	@SuppressWarnings("deprecation")
-	public Item getItem(String itemName) {
+	public Item getItem(String itemName)
+	{
 		if (!contains(itemName)) {
 			items.add(new Item(itemName));
 		}

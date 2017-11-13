@@ -19,7 +19,6 @@ import application.manufacturingPlanner.Recipe;
 import application.manufacturingPlanner.RecipesDatabase;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -54,7 +53,7 @@ public class MainWindowController
 {
 	@FXML
 	VBox root;
-	
+
 	// ----- menu bar -----
 	@FXML
 	MenuItem loadRecipiesButton;
@@ -72,7 +71,7 @@ public class MainWindowController
 	// ----- factory setup -----
 	@FXML
 	CheckBox useExpensiveRecipesCheckBox;
-	
+
 	@FXML
 	TextField allItemsFilter;
 	@FXML
@@ -86,7 +85,7 @@ public class MainWindowController
 	@FXML
 	TableColumn<FactoryOutput, String> factoryOutputsTableProductNameColumn;
 	@FXML
-	TableColumn<FactoryOutput, DoubleProperty> factoryOutputsTableProductionRateColumn;
+	TableColumn<FactoryOutput, ObjectProperty<Double>> factoryOutputsTableProductionRateColumn;
 	@FXML
 	TableColumn<FactoryOutput, ObjectProperty<FactoryOutput.ProductionRateUnit>> factoryOutputsTableProductionRateUnitColumn;
 
@@ -117,7 +116,7 @@ public class MainWindowController
 	private RecipesDatabase allRecipes = new RecipesDatabase();
 	private ItemsDatabase allItems = new ItemsDatabase();
 	private ObservableList<Item> optionalInputsDatabase = FXCollections.observableArrayList();
-	FactoryOutputsModel selectedOutputsModel = new FactoryOutputsModel();
+	private FactoryOutputsModel selectedOutputsModel = new FactoryOutputsModel();
 	private ObservableList<FactoryProductionStep> calculatedIntermediariesDatabase = FXCollections.observableArrayList();
 	private ObservableList<FactoryInput> calculatedInputsDatabase = FXCollections.observableArrayList();
 
@@ -142,20 +141,26 @@ public class MainWindowController
 		factoryOutputsTable.setItems(selectedOutputsModel.getfactoryOutputs());
 		factoryOutputsTableProductNameColumn.setCellValueFactory(new PropertyValueFactory<FactoryOutput, String>("name"));
 		factoryOutputsTableProductionRateColumn.setCellValueFactory(i -> {
-			final DoubleProperty value = i.getValue().productionRateProperty();
+			final ObjectProperty<Double> value = i.getValue().productionRateProperty();
 			return Bindings.createObjectBinding(() -> value);
 		});
 		factoryOutputsTableProductionRateColumn.setCellFactory(col -> {
-			TableCell<FactoryOutput, DoubleProperty> cell = new TableCell<FactoryOutput, DoubleProperty>();
+			TableCell<FactoryOutput, ObjectProperty<Double>> cell = new TableCell<FactoryOutput, ObjectProperty<Double>>();
 			cell.setEditable(true);
 			final Spinner<Double> spinner = new Spinner<Double>(0, Double.MAX_VALUE, 1);
 			spinner.setEditable(true);
+			// force the value property to update whenever the text does, rather then rely on ENTER being pressed
+			spinner.focusedProperty().addListener((observer, oldValue, newValue) -> {
+				if (!newValue) {
+					spinner.increment(0);
+				}
+			});
 			cell.itemProperty().addListener((observable, oldValue, newValue) -> {
 				if (oldValue != null) {
-					spinner.getValueFactory().valueProperty().unbindBidirectional(oldValue.asObject());
+					spinner.getValueFactory().valueProperty().unbindBidirectional(oldValue);
 				}
 				if (newValue != null) {
-					spinner.getValueFactory().valueProperty().bindBidirectional(newValue.asObject());
+					spinner.getValueFactory().valueProperty().bindBidirectional(newValue);
 					newValue.addListener((obs, o, n) -> {
 						updateFactory();
 					});
@@ -193,11 +198,12 @@ public class MainWindowController
 		factoryProductionStepsRecipeColumn.setCellValueFactory(new TreeItemPropertyValueFactory<FactoryProductionStep, Recipe>("recipe"));
 		factoryProductionStepsItemColumn.setCellValueFactory(new TreeItemPropertyValueFactory<FactoryProductionStep, Item>("itemProduced"));
 		factoryIntermediariesTableCountPerSecond.setCellValueFactory(new TreeItemPropertyValueFactory<FactoryProductionStep, Double>("requiredIntermediariesPerSecond"));
-		factoryIntermediariesTableCountPerSecond.setStyle( "-fx-alignment: CENTER-RIGHT;");
-		factoryIntermediariesTableCountPerSecond.setCellFactory(col -> 
-		new TreeTableCell<FactoryProductionStep, Double>() {
-			@Override 
-			public void updateItem(Double requiredIntermediariesPerSecond, boolean empty) {
+		factoryIntermediariesTableCountPerSecond.setStyle("-fx-alignment: CENTER-RIGHT;");
+		factoryIntermediariesTableCountPerSecond.setCellFactory(col -> new TreeTableCell<FactoryProductionStep, Double>()
+		{
+			@Override
+			public void updateItem(Double requiredIntermediariesPerSecond, boolean empty)
+			{
 				super.updateItem(requiredIntermediariesPerSecond, empty);
 				if (empty) {
 					setText(null);
@@ -210,11 +216,12 @@ public class MainWindowController
 		factoryInputsTable.setItems(calculatedInputsDatabase);
 		factoryInputsTableItemColumn.setCellValueFactory(new PropertyValueFactory<FactoryInput, Item>("item"));
 		factoryInputsTableInputRateColumn.setCellValueFactory(new PropertyValueFactory<FactoryInput, Double>("itemsPerSecond"));
-		factoryInputsTableInputRateColumn.setStyle( "-fx-alignment: CENTER-RIGHT;");
-		factoryInputsTableInputRateColumn.setCellFactory(col -> 
-		new TableCell<FactoryInput, Double>() {
-			@Override 
-			public void updateItem(Double itemsPerSecond, boolean empty) {
+		factoryInputsTableInputRateColumn.setStyle("-fx-alignment: CENTER-RIGHT;");
+		factoryInputsTableInputRateColumn.setCellFactory(col -> new TableCell<FactoryInput, Double>()
+		{
+			@Override
+			public void updateItem(Double itemsPerSecond, boolean empty)
+			{
 				super.updateItem(itemsPerSecond, empty);
 				if (empty) {
 					setText(null);

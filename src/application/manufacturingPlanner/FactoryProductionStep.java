@@ -20,7 +20,7 @@ public class FactoryProductionStep
 	private final RecipesDatabase allRecipes;
 	private final Collection<Item> preProducedItems;
 	private final boolean usingExpensiveRecipes;
-	
+
 	private SimpleObjectProperty<Recipe> selectedRecipe = new SimpleObjectProperty<Recipe>();
 	private ArrayList<FactoryProductionStep> productionDependancies = new ArrayList<FactoryProductionStep>();
 
@@ -29,7 +29,8 @@ public class FactoryProductionStep
 	 * @param item - The item this intermediary is producing
 	 * @param requiredProductionPerSecond - The number of items per second this intermediary needs to products
 	 * @param allRecipes - All recipes in the game
-	 * @param preProducedItems - Optional items which will be provided, meaning they don't need producing, meaning they will be leaf nodes like raw materials
+	 * @param preProducedItems - Optional items which will be provided, meaning they don't need producing, meaning they will be leaf nodes
+	 *            like raw materials
 	 * @param usingExpensiveRecipes - <code>true</code> if you're planning an expensive mode factory!
 	 */
 	public FactoryProductionStep(Item item, double requiredProductionPerSecond, RecipesDatabase allRecipes, Collection<Item> preProducedItems, boolean usingExpensiveRecipes)
@@ -37,7 +38,7 @@ public class FactoryProductionStep
 		this.itemProduced = item;
 		this.itemProductionPerSecond = requiredProductionPerSecond;
 		this.potentialRecipes = allRecipes.getRecipesWhichProduce(item, usingExpensiveRecipes);
-		
+
 		this.allRecipes = allRecipes;
 		this.preProducedItems = preProducedItems;
 		this.usingExpensiveRecipes = usingExpensiveRecipes;
@@ -60,7 +61,7 @@ public class FactoryProductionStep
 		if (!preProducedItems.contains(itemProduced) && selectedRecipe != null) {
 			// for each ingredient we require to be manufactured
 			for (Item requiredIngredient : selectedRecipe.getIngredients(usingExpensiveRecipes).keySet()) {
-				double ingredientCountPerItemProduced = selectedRecipe.getIngredients(usingExpensiveRecipes).get(requiredIngredient).doubleValue();		
+				double ingredientCountPerItemProduced = selectedRecipe.getIngredients(usingExpensiveRecipes).get(requiredIngredient).doubleValue();
 				productionDependancies.add(new FactoryProductionStep(requiredIngredient, itemProductionPerSecond * ingredientCountPerItemProduced, allRecipes, preProducedItems, usingExpensiveRecipes));
 			}
 		}
