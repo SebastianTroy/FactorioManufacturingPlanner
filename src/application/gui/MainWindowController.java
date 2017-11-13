@@ -18,6 +18,9 @@ import application.manufacturingPlanner.ItemsDatabase;
 import application.manufacturingPlanner.Recipe;
 import application.manufacturingPlanner.RecipesDatabase;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -26,24 +29,26 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.Spinner;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.control.TreeTableView;
-import javafx.scene.control.cell.ComboBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.control.cell.TreeItemPropertyValueFactory;
 import javafx.scene.layout.VBox;
-import javafx.util.converter.DoubleStringConverter;
 
 public class MainWindowController
 {
@@ -81,9 +86,9 @@ public class MainWindowController
 	@FXML
 	TableColumn<FactoryOutput, String> factoryOutputsTableProductNameColumn;
 	@FXML
-	TableColumn<FactoryOutput, Double> factoryOutputsTableProductionRateColumn;
+	TableColumn<FactoryOutput, DoubleProperty> factoryOutputsTableProductionRateColumn;
 	@FXML
-	TableColumn<FactoryOutput, FactoryOutput.ProductionRateUnit> factoryOutputsTableProductionRateUnitColumn;
+	TableColumn<FactoryOutput, ObjectProperty<FactoryOutput.ProductionRateUnit>> factoryOutputsTableProductionRateUnitColumn;
 
 	@FXML
 	ListView<Item> optionalInputItemsList;
@@ -136,17 +141,50 @@ public class MainWindowController
 
 		factoryOutputsTable.setItems(selectedOutputsModel.getfactoryOutputs());
 		factoryOutputsTableProductNameColumn.setCellValueFactory(new PropertyValueFactory<FactoryOutput, String>("name"));
-		factoryOutputsTableProductionRateColumn.setCellValueFactory(new PropertyValueFactory<FactoryOutput, Double>("productionRate"));
-		factoryOutputsTableProductionRateColumn.setCellFactory(TextFieldTableCell.<FactoryOutput, Double> forTableColumn(new DoubleStringConverter()));
-		factoryOutputsTableProductionRateColumn.setOnEditCommit(event -> {
-			event.getRowValue().setProductionRate(event.getNewValue());
-			updateFactory();
+		factoryOutputsTableProductionRateColumn.setCellValueFactory(i -> {
+			final DoubleProperty value = i.getValue().productionRateProperty();
+			return Bindings.createObjectBinding(() -> value);
 		});
-		factoryOutputsTableProductionRateUnitColumn.setCellValueFactory(new PropertyValueFactory<FactoryOutput, FactoryOutput.ProductionRateUnit>("productionRateUnit"));
-		factoryOutputsTableProductionRateUnitColumn.setCellFactory(ComboBoxTableCell.<FactoryOutput, FactoryOutput.ProductionRateUnit> forTableColumn(FactoryOutput.ProductionRateUnit.values()));
-		factoryOutputsTableProductionRateUnitColumn.setOnEditCommit(event -> {
-			event.getRowValue().setProductionRateUnit(event.getNewValue());
-			updateFactory();
+		factoryOutputsTableProductionRateColumn.setCellFactory(col -> {
+			TableCell<FactoryOutput, DoubleProperty> cell = new TableCell<FactoryOutput, DoubleProperty>();
+			cell.setEditable(true);
+			final Spinner<Double> spinner = new Spinner<Double>(0, Double.MAX_VALUE, 1);
+			spinner.setEditable(true);
+			cell.itemProperty().addListener((observable, oldValue, newValue) -> {
+				if (oldValue != null) {
+					spinner.getValueFactory().valueProperty().unbindBidirectional(oldValue.asObject());
+				}
+				if (newValue != null) {
+					spinner.getValueFactory().valueProperty().bindBidirectional(newValue.asObject());
+					newValue.addListener((obs, o, n) -> {
+						updateFactory();
+					});
+				}
+			});
+
+			cell.graphicProperty().bind(Bindings.when(cell.emptyProperty()).then((Node) null).otherwise(spinner));
+			return cell;
+		});
+		factoryOutputsTableProductionRateUnitColumn.setCellValueFactory(i -> {
+			final ObjectProperty<FactoryOutput.ProductionRateUnit> value = i.getValue().productionRateUnitProperty();
+			return Bindings.createObjectBinding(() -> value);
+		});
+		factoryOutputsTableProductionRateUnitColumn.setCellFactory(col -> {
+			TableCell<FactoryOutput, ObjectProperty<FactoryOutput.ProductionRateUnit>> cell = new TableCell<FactoryOutput, ObjectProperty<FactoryOutput.ProductionRateUnit>>();
+			final ComboBox<FactoryOutput.ProductionRateUnit> comboBox = new ComboBox<FactoryOutput.ProductionRateUnit>(FXCollections.observableArrayList(FactoryOutput.ProductionRateUnit.values()));
+			cell.itemProperty().addListener((observable, oldValue, newValue) -> {
+				if (oldValue != null) {
+					comboBox.valueProperty().unbindBidirectional(oldValue);
+				}
+				if (newValue != null) {
+					comboBox.valueProperty().bindBidirectional(newValue);
+					newValue.addListener((obs, o, n) -> {
+						updateFactory();
+					});
+				}
+			});
+			cell.graphicProperty().bind(Bindings.when(cell.emptyProperty()).then((Node) null).otherwise(comboBox));
+			return cell;
 		});
 
 		optionalInputItemsList.setItems(optionalInputsDatabase);
@@ -155,10 +193,36 @@ public class MainWindowController
 		factoryProductionStepsRecipeColumn.setCellValueFactory(new TreeItemPropertyValueFactory<FactoryProductionStep, Recipe>("recipe"));
 		factoryProductionStepsItemColumn.setCellValueFactory(new TreeItemPropertyValueFactory<FactoryProductionStep, Item>("itemProduced"));
 		factoryIntermediariesTableCountPerSecond.setCellValueFactory(new TreeItemPropertyValueFactory<FactoryProductionStep, Double>("requiredIntermediariesPerSecond"));
+		factoryIntermediariesTableCountPerSecond.setStyle( "-fx-alignment: CENTER-RIGHT;");
+		factoryIntermediariesTableCountPerSecond.setCellFactory(col -> 
+		new TreeTableCell<FactoryProductionStep, Double>() {
+			@Override 
+			public void updateItem(Double requiredIntermediariesPerSecond, boolean empty) {
+				super.updateItem(requiredIntermediariesPerSecond, empty);
+				if (empty) {
+					setText(null);
+				} else {
+					setText(String.format("%.2f", requiredIntermediariesPerSecond.doubleValue()));
+				}
+			}
+		});
 
 		factoryInputsTable.setItems(calculatedInputsDatabase);
 		factoryInputsTableItemColumn.setCellValueFactory(new PropertyValueFactory<FactoryInput, Item>("item"));
 		factoryInputsTableInputRateColumn.setCellValueFactory(new PropertyValueFactory<FactoryInput, Double>("itemsPerSecond"));
+		factoryInputsTableInputRateColumn.setStyle( "-fx-alignment: CENTER-RIGHT;");
+		factoryInputsTableInputRateColumn.setCellFactory(col -> 
+		new TableCell<FactoryInput, Double>() {
+			@Override 
+			public void updateItem(Double itemsPerSecond, boolean empty) {
+				super.updateItem(itemsPerSecond, empty);
+				if (empty) {
+					setText(null);
+				} else {
+					setText(String.format("%.2f", itemsPerSecond.doubleValue()));
+				}
+			}
+		});
 	}
 
 	@FXML

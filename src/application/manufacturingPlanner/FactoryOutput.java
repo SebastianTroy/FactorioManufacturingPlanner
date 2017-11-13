@@ -1,5 +1,7 @@
 package application.manufacturingPlanner;
 
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -70,9 +72,18 @@ public class FactoryOutput
 	{
 		productionRate.set(newProductionRate);
 	}
+	
+	public DoubleProperty productionRateProperty()
+	{
+		return productionRate;
+	}
 
 	public void setProductionRateUnit(ProductionRateUnit newProductionRateUnit)
 	{
 		productionRateUnit.set(newProductionRateUnit);
+	}
+
+	public ObjectProperty<ProductionRateUnit> productionRateUnitProperty() {
+		return productionRateUnit;
 	}
 }
