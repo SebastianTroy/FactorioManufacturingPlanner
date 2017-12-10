@@ -8,11 +8,14 @@ import java.util.function.Predicate;
 
 import org.json.simple.parser.ParseException;
 
+import application.PlannerApplicationPreferences;
 import application.gameFileParser.RecipesParser;
 import application.manufacturingPlanner.FactoryInput;
+import application.manufacturingPlanner.FactoryInputsModel;
 import application.manufacturingPlanner.FactoryOutput;
 import application.manufacturingPlanner.FactoryOutputsModel;
 import application.manufacturingPlanner.FactoryProductionStep;
+import application.manufacturingPlanner.FactoryProductionsStepsModel;
 import application.manufacturingPlanner.Item;
 import application.manufacturingPlanner.ItemsDatabase;
 import application.manufacturingPlanner.Recipe;
@@ -23,7 +26,6 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
@@ -41,13 +43,13 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
-import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.control.TreeTableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TreeItemPropertyValueFactory;
 import javafx.scene.layout.VBox;
+import javafx.stage.DirectoryChooser;
 
 public class MainWindowController
 {
@@ -55,6 +57,8 @@ public class MainWindowController
 	VBox root;
 
 	// ----- menu bar -----
+	@FXML
+	MenuItem selectFactorioInstallationDirectoryButton;
 	@FXML
 	MenuItem loadRecipiesButton;
 	@FXML
@@ -115,10 +119,10 @@ public class MainWindowController
 
 	private RecipesDatabase allRecipes = new RecipesDatabase();
 	private ItemsDatabase allItems = new ItemsDatabase();
-	private ObservableList<Item> optionalInputsDatabase = FXCollections.observableArrayList();
+
 	private FactoryOutputsModel selectedOutputsModel = new FactoryOutputsModel();
-	private ObservableList<FactoryProductionStep> calculatedIntermediariesDatabase = FXCollections.observableArrayList();
-	private ObservableList<FactoryInput> calculatedInputsDatabase = FXCollections.observableArrayList();
+	private FactoryProductionsStepsModel productionStepsModel = new FactoryProductionsStepsModel(selectedOutputsModel, allRecipes);
+	private FactoryInputsModel calculatedInputsModel = new FactoryInputsModel(productionStepsModel);
 
 	@FXML
 	void initialize()
@@ -127,12 +131,6 @@ public class MainWindowController
 		Platform.runLater(() -> onDefaultCssClicked());
 
 		setTextEditToFilterListView(allItemsList, allItems.items, allItemsFilter);
-
-		selectedOutputsModel.addModelUpdatedListener(() -> updateFactory());
-
-		optionalInputsDatabase.addListener((ListChangeListener.Change<? extends Item> c) -> {
-			updateFactory();
-		});
 
 		allItemsList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 		factoryOutputsTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
@@ -161,9 +159,6 @@ public class MainWindowController
 				}
 				if (newValue != null) {
 					spinner.getValueFactory().valueProperty().bindBidirectional(newValue);
-					newValue.addListener((obs, o, n) -> {
-						updateFactory();
-					});
 				}
 			});
 
@@ -183,18 +178,18 @@ public class MainWindowController
 				}
 				if (newValue != null) {
 					comboBox.valueProperty().bindBidirectional(newValue);
-					newValue.addListener((obs, o, n) -> {
-						updateFactory();
-					});
 				}
 			});
 			cell.graphicProperty().bind(Bindings.when(cell.emptyProperty()).then((Node) null).otherwise(comboBox));
 			return cell;
 		});
 
-		optionalInputItemsList.setItems(optionalInputsDatabase);
+		optionalInputItemsList.setItems(productionStepsModel.optionalInputsDatabase);
+
+		productionStepsModel.expensiveMode.bind(useExpensiveRecipesCheckBox.armedProperty());
 
 		factoryProductionStepsTable.setShowRoot(false);
+		factoryProductionStepsTable.setRoot(productionStepsModel.rootModelNode);
 		factoryProductionStepsRecipeColumn.setCellValueFactory(new TreeItemPropertyValueFactory<FactoryProductionStep, Recipe>("recipe"));
 		factoryProductionStepsItemColumn.setCellValueFactory(new TreeItemPropertyValueFactory<FactoryProductionStep, Item>("itemProduced"));
 		factoryIntermediariesTableCountPerSecond.setCellValueFactory(new TreeItemPropertyValueFactory<FactoryProductionStep, Double>("requiredIntermediariesPerSecond"));
@@ -213,7 +208,7 @@ public class MainWindowController
 			}
 		});
 
-		factoryInputsTable.setItems(calculatedInputsDatabase);
+		factoryInputsTable.setItems(calculatedInputsModel.readOnlyFactoryInputs);
 		factoryInputsTableItemColumn.setCellValueFactory(new PropertyValueFactory<FactoryInput, Item>("item"));
 		factoryInputsTableInputRateColumn.setCellValueFactory(new PropertyValueFactory<FactoryInput, Double>("itemsPerSecond"));
 		factoryInputsTableInputRateColumn.setStyle("-fx-alignment: CENTER-RIGHT;");
@@ -230,6 +225,23 @@ public class MainWindowController
 				}
 			}
 		});
+	}
+
+	@FXML
+	private void onSelectFactorioInstallationDirectoryButtonClicked()
+	{
+		DirectoryChooser installationDirectoryChooser = new DirectoryChooser();
+		installationDirectoryChooser.setInitialDirectory(new File(PlannerApplicationPreferences.getFactorioInstallationDirectory()));
+		File chosenDirectory = installationDirectoryChooser.showDialog(null);
+
+		if (chosenDirectory != null) {
+			String directoryPath = chosenDirectory.getAbsolutePath();
+
+			if (directoryPath.endsWith("Factorio")) {
+				PlannerApplicationPreferences.setFactorioInstallationDirectory(directoryPath);
+
+			}
+		}
 	}
 
 	@FXML
@@ -295,18 +307,13 @@ public class MainWindowController
 	@FXML
 	private void onAddOptionalFactoryInputPressed()
 	{
-		allItemsList.getSelectionModel().getSelectedItems().forEach(item -> {
-			optionalInputsDatabase.add(item);
-		});
+		optionalInputItemsList.getItems().addAll(allItemsList.getSelectionModel().getSelectedItems());
 	}
 
 	@FXML
 	private void onRemoveoptionalFactoryInputPressed()
 	{
-		// create copy of list so that we don't try to iterate and remove from our selectionModel at the same time!
-		new ArrayList<Item>(optionalInputItemsList.getSelectionModel().getSelectedItems()).forEach(item -> {
-			optionalInputsDatabase.remove(item);
-		});
+		optionalInputItemsList.getItems().removeAll(optionalInputItemsList.getSelectionModel().getSelectedItems());
 	}
 
 	private void setTextEditToFilterListView(ListView<Item> listToFilter, ObservableList<Item> listItemsModel, TextField filterInput)
@@ -337,26 +344,5 @@ public class MainWindowController
 				return item.name.contains(filterText);
 			}
 		});
-	}
-
-	@FXML
-	private void updateFactory()
-	{
-		ArrayList<FactoryProductionStep> intermediaries = new ArrayList<FactoryProductionStep>();
-
-		for (FactoryOutput product : selectedOutputsModel.getfactoryOutputs()) {
-			intermediaries.add(new FactoryProductionStep(product.item, product.getProductionRatePerSecond(), allRecipes, optionalInputsDatabase, useExpensiveRecipesCheckBox.isSelected()));
-		}
-
-		calculatedIntermediariesDatabase.setAll(intermediaries);
-
-		calculatedInputsDatabase.clear();
-		TreeItem<FactoryProductionStep> rootIntermediary = new TreeItem<FactoryProductionStep>();
-		rootIntermediary.setExpanded(true);
-		for (FactoryProductionStep topLevelIntermediary : intermediaries) {
-			topLevelIntermediary.recursivelyBuildProductionDependancyTree(rootIntermediary);
-			topLevelIntermediary.recursivelyAccumulateFactoryInputs(calculatedInputsDatabase);
-		}
-		factoryProductionStepsTable.setRoot(rootIntermediary);
 	}
 }

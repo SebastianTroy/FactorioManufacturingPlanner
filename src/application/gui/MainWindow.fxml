@@ -12,7 +12,8 @@
         <menus>
           <Menu mnemonicParsing="false" text="File">
             <items>
-              <MenuItem fx:id="loadRecipiesButton" mnemonicParsing="false" onAction="#onLoadRecipiesButoonClicked" text="Load Recipies" />
+                  <MenuItem fx:id="selectFactorioInstallationDirectoryButton" mnemonicParsing="false" onAction="#onSelectFactorioInstallationDirectoryButtonClicked" text="Select Factorio Installation" />
+              <MenuItem fx:id="loadRecipiesButton" mnemonicParsing="false" onAction="#onLoadRecipiesButoonClicked" text="Load Recipies (0.15 JSON)" />
             </items>
           </Menu>
           <Menu mnemonicParsing="false" text="Help">
@@ -41,7 +42,7 @@
                                   <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                                 </rowConstraints>
                                  <children>
-                                    <CheckBox fx:id="useExpensiveRecipesCheckBox" mnemonicParsing="false" onAction="#updateFactory" text="CheckBox" />
+                                    <CheckBox fx:id="useExpensiveRecipesCheckBox" mnemonicParsing="false" text="Use Expensive Recipes" />
                                  </children>
                               </GridPane>
                            </content></TitledPane>
