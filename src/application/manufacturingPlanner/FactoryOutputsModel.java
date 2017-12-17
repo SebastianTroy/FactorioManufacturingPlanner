@@ -16,6 +16,7 @@ public class FactoryOutputsModel
 	private final ObservableList<FactoryOutput> factoryOutputs = FXCollections.observableArrayList();
 	private final ObservableList<FactoryOutput> readOnlyFactoryOutputs = FXCollections.unmodifiableObservableList(factoryOutputs);
 
+	// TODO don't expose the list, instead allow adding of listeners because changes to items in the list should also trigger updates, not just adding/subtracting
 	public ObservableList<FactoryOutput> getfactoryOutputs()
 	{
 		// don't new the readOnly list here as the listeners would get cleaned up by the GC
@@ -33,6 +34,7 @@ public class FactoryOutputsModel
 		return false;
 	}
 
+	// TODO allow adding of multiple items so updates are only triggered once per change, rather than per item (same for removing)
 	public void addNewOutput(Item toAdd)
 	{
 		if (!contains(toAdd)) {

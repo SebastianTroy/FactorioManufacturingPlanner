@@ -9,7 +9,7 @@ public class FactoryInputsModel
 	private final ObservableList<FactoryInput> factoryInputs = FXCollections.observableArrayList();
 	public final ObservableList<FactoryInput> readOnlyFactoryInputs = FXCollections.unmodifiableObservableList(factoryInputs);
 
-	public FactoryInputsModel(FactoryProductionsStepsModel productionStepsModel)
+	public FactoryInputsModel(FactoryProductionStepsModel productionStepsModel)
 	{
 		productionStepsModel.rootModelNode.addEventHandler(TreeItem.treeNotificationEvent(), event -> {
 			reCalculateFactoryInputs(productionStepsModel.rootModelNode);

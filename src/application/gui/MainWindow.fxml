@@ -136,8 +136,8 @@
                                         <TreeTableColumn fx:id="factoryProductionStepsItemColumn" prefWidth="75.0" text="Item" />
                                           <TreeTableColumn fx:id="factoryProductionStepsRecipeColumn" prefWidth="75.0" text="Recipe" />
                                           <TreeTableColumn prefWidth="75.0" text="Buildings" />
-                                        <TreeTableColumn fx:id="factoryIntermediariesTableCountPerSecond" prefWidth="75.0" text="Output / sec" />
-                                          <TreeTableColumn prefWidth="75.0" text="Transport" />
+                                        <TreeTableColumn fx:id="factoryProductionStepsProductionRateColumn" prefWidth="75.0" text="Output / sec" />
+                                          <TreeTableColumn fx:id="factoryProductionStepsTransportColumn" prefWidth="75.0" text="Transport" />
                                       </columns>
                                        <columnResizePolicy>
                                           <TreeTableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
@@ -158,7 +158,7 @@
                                       <columns>
                                         <TableColumn fx:id="factoryInputsTableItemColumn" editable="false" prefWidth="75.0" text="Item" />
                                         <TableColumn fx:id="factoryInputsTableInputRateColumn" editable="false" prefWidth="75.0" text="Input / sec" />
-                                          <TableColumn editable="false" prefWidth="120.0" text="Transport" />
+                                          <TableColumn fx:id="factoryInputsTableTransportColumn" editable="false" prefWidth="120.0" text="Transport" />
                                       </columns>
                                        <columnResizePolicy>
                                           <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />

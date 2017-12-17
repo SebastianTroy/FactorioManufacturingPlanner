@@ -8,7 +8,7 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.control.TreeItem;
 
-public class FactoryProductionsStepsModel
+public class FactoryProductionStepsModel
 {
 	public final TreeItem<FactoryProductionStep> rootModelNode = new TreeItem<FactoryProductionStep>();
 
@@ -18,7 +18,7 @@ public class FactoryProductionsStepsModel
 	private final ObservableList<FactoryOutput> readOnlyFactoryOutputs;
 	private final RecipesDatabase recipes;
 
-	public FactoryProductionsStepsModel(FactoryOutputsModel outputsModel, RecipesDatabase recipesDatabase)
+	public FactoryProductionStepsModel(FactoryOutputsModel outputsModel, RecipesDatabase recipesDatabase)
 	{
 		rootModelNode.setExpanded(true);
 
@@ -31,6 +31,7 @@ public class FactoryProductionsStepsModel
 		optionalInputsDatabase.addListener((ListChangeListener<Item>) change -> {
 			updateProductionSteps();
 		});
+		// FIXME model doesn't update when quantity or rate of an item is changed!
 	}
 
 	private void updateProductionSteps()

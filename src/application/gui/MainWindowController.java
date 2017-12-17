@@ -15,7 +15,7 @@ import application.manufacturingPlanner.FactoryInputsModel;
 import application.manufacturingPlanner.FactoryOutput;
 import application.manufacturingPlanner.FactoryOutputsModel;
 import application.manufacturingPlanner.FactoryProductionStep;
-import application.manufacturingPlanner.FactoryProductionsStepsModel;
+import application.manufacturingPlanner.FactoryProductionStepsModel;
 import application.manufacturingPlanner.Item;
 import application.manufacturingPlanner.ItemsDatabase;
 import application.manufacturingPlanner.Recipe;
@@ -108,7 +108,9 @@ public class MainWindowController
 	@FXML
 	TreeTableColumn<FactoryProductionStep, Item> factoryProductionStepsItemColumn;
 	@FXML
-	TreeTableColumn<FactoryProductionStep, Double> factoryIntermediariesTableCountPerSecond;
+	TreeTableColumn<FactoryProductionStep, Double> factoryProductionStepsProductionRateColumn;
+	@FXML
+	TreeTableColumn<FactoryProductionStep, Double> factoryProductionStepsTransportColumn;
 
 	@FXML
 	TableView<FactoryInput> factoryInputsTable;
@@ -116,12 +118,14 @@ public class MainWindowController
 	TableColumn<FactoryInput, Item> factoryInputsTableItemColumn;
 	@FXML
 	TableColumn<FactoryInput, Double> factoryInputsTableInputRateColumn;
+	@FXML
+	TableColumn<FactoryInput, Double> factoryInputsTableTransportColumn;
 
 	private RecipesDatabase allRecipes = new RecipesDatabase();
 	private ItemsDatabase allItems = new ItemsDatabase();
 
 	private FactoryOutputsModel selectedOutputsModel = new FactoryOutputsModel();
-	private FactoryProductionsStepsModel productionStepsModel = new FactoryProductionsStepsModel(selectedOutputsModel, allRecipes);
+	private FactoryProductionStepsModel productionStepsModel = new FactoryProductionStepsModel(selectedOutputsModel, allRecipes);
 	private FactoryInputsModel calculatedInputsModel = new FactoryInputsModel(productionStepsModel);
 
 	@FXML
@@ -171,6 +175,7 @@ public class MainWindowController
 		});
 		factoryOutputsTableProductionRateUnitColumn.setCellFactory(col -> {
 			TableCell<FactoryOutput, ObjectProperty<FactoryOutput.ProductionRateUnit>> cell = new TableCell<FactoryOutput, ObjectProperty<FactoryOutput.ProductionRateUnit>>();
+			// TODO make combobox take up entire cell
 			final ComboBox<FactoryOutput.ProductionRateUnit> comboBox = new ComboBox<FactoryOutput.ProductionRateUnit>(FXCollections.observableArrayList(FactoryOutput.ProductionRateUnit.values()));
 			cell.itemProperty().addListener((observable, oldValue, newValue) -> {
 				if (oldValue != null) {
@@ -192,9 +197,9 @@ public class MainWindowController
 		factoryProductionStepsTable.setRoot(productionStepsModel.rootModelNode);
 		factoryProductionStepsRecipeColumn.setCellValueFactory(new TreeItemPropertyValueFactory<FactoryProductionStep, Recipe>("recipe"));
 		factoryProductionStepsItemColumn.setCellValueFactory(new TreeItemPropertyValueFactory<FactoryProductionStep, Item>("itemProduced"));
-		factoryIntermediariesTableCountPerSecond.setCellValueFactory(new TreeItemPropertyValueFactory<FactoryProductionStep, Double>("requiredIntermediariesPerSecond"));
-		factoryIntermediariesTableCountPerSecond.setStyle("-fx-alignment: CENTER-RIGHT;");
-		factoryIntermediariesTableCountPerSecond.setCellFactory(col -> new TreeTableCell<FactoryProductionStep, Double>()
+		factoryProductionStepsProductionRateColumn.setCellValueFactory(new TreeItemPropertyValueFactory<FactoryProductionStep, Double>("requiredIntermediariesPerSecond"));
+		factoryProductionStepsProductionRateColumn.setStyle("-fx-alignment: CENTER-RIGHT;");
+		factoryProductionStepsProductionRateColumn.setCellFactory(col -> new TreeTableCell<FactoryProductionStep, Double>()
 		{
 			@Override
 			public void updateItem(Double requiredIntermediariesPerSecond, boolean empty)
@@ -224,6 +229,18 @@ public class MainWindowController
 					setText(String.format("%.2f", itemsPerSecond.doubleValue()));
 				}
 			}
+		});
+		factoryInputsTableTransportColumn.setCellFactory(col -> {
+			TableCell<FactoryInput, Double> cell = new TableCell<FactoryInput, Double>();
+			cell.setEditable(true);
+			final TransportComboBox transportComboBox = new TransportComboBox();
+			transportComboBox.setEditable(true);
+			cell.itemProperty().addListener((observable, oldValue, newValue) -> {
+				transportComboBox.setItemCount(newValue);
+			});
+
+			cell.graphicProperty().bind(Bindings.when(cell.emptyProperty()).then((Node) null).otherwise(transportComboBox));
+			return cell;
 		});
 	}
 
