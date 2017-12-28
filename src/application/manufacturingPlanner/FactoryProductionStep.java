@@ -3,6 +3,7 @@ package application.manufacturingPlanner;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.TreeItem;
 
@@ -13,7 +14,7 @@ import javafx.scene.control.TreeItem;
 public class FactoryProductionStep
 {
 	private final Item itemProduced;
-	private final double itemProductionPerSecond;
+	public final SimpleDoubleProperty itemProductionPerSecond;
 	private final ArrayList<Recipe> potentialRecipes;
 
 	private final RecipesDatabase allRecipes;
@@ -35,7 +36,7 @@ public class FactoryProductionStep
 	public FactoryProductionStep(Item item, double requiredProductionPerSecond, RecipesDatabase allRecipes, Collection<Item> preProducedItems, boolean usingExpensiveRecipes)
 	{
 		this.itemProduced = item;
-		this.itemProductionPerSecond = requiredProductionPerSecond;
+		this.itemProductionPerSecond = new SimpleDoubleProperty(requiredProductionPerSecond);
 		this.potentialRecipes = allRecipes.getRecipesWhichProduce(item, usingExpensiveRecipes);
 
 		this.allRecipes = allRecipes;
@@ -63,7 +64,7 @@ public class FactoryProductionStep
 			// for each ingredient we require to be manufactured
 			for (Item requiredIngredient : selectedRecipe.getIngredients(usingExpensiveRecipes).keySet()) {
 				double ingredientCountPerItemProduced = selectedRecipe.getIngredients(usingExpensiveRecipes).get(requiredIngredient).doubleValue();
-				FactoryProductionStep childProductionStep = new FactoryProductionStep(requiredIngredient, itemProductionPerSecond * ingredientCountPerItemProduced, allRecipes, preProducedItems, usingExpensiveRecipes);
+				FactoryProductionStep childProductionStep = new FactoryProductionStep(requiredIngredient, itemProductionPerSecond.doubleValue() * ingredientCountPerItemProduced, allRecipes, preProducedItems, usingExpensiveRecipes);
 				node.getChildren().add(childProductionStep.node);
 			}
 		}
@@ -79,9 +80,9 @@ public class FactoryProductionStep
 		return itemProduced;
 	}
 
-	public double getRequiredIntermediariesPerSecond()
+	public double getItemProductionPerSecond()
 	{
-		return itemProductionPerSecond;
+		return itemProductionPerSecond.doubleValue();
 	}
 
 	@Override

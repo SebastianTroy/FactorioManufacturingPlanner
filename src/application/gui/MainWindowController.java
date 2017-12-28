@@ -48,6 +48,7 @@ import javafx.scene.control.TreeTableColumn;
 import javafx.scene.control.TreeTableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TreeItemPropertyValueFactory;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 
@@ -166,7 +167,7 @@ public class MainWindowController
 				}
 			});
 
-			cell.graphicProperty().bind(Bindings.when(cell.emptyProperty()).then((Node) null).otherwise(spinner));
+			cell.graphicProperty().bind(Bindings.when(cell.emptyProperty()).then((Node) null).otherwise(wrapNodeInAnchorPane(spinner)));
 			return cell;
 		});
 		factoryOutputsTableProductionRateUnitColumn.setCellValueFactory(i -> {
@@ -185,7 +186,7 @@ public class MainWindowController
 					comboBox.valueProperty().bindBidirectional(newValue);
 				}
 			});
-			cell.graphicProperty().bind(Bindings.when(cell.emptyProperty()).then((Node) null).otherwise(comboBox));
+			cell.graphicProperty().bind(Bindings.when(cell.emptyProperty()).then((Node) null).otherwise(wrapNodeInAnchorPane(comboBox)));
 			return cell;
 		});
 
@@ -197,7 +198,7 @@ public class MainWindowController
 		factoryProductionStepsTable.setRoot(productionStepsModel.rootModelNode);
 		factoryProductionStepsRecipeColumn.setCellValueFactory(new TreeItemPropertyValueFactory<FactoryProductionStep, Recipe>("recipe"));
 		factoryProductionStepsItemColumn.setCellValueFactory(new TreeItemPropertyValueFactory<FactoryProductionStep, Item>("itemProduced"));
-		factoryProductionStepsProductionRateColumn.setCellValueFactory(new TreeItemPropertyValueFactory<FactoryProductionStep, Double>("requiredIntermediariesPerSecond"));
+		factoryProductionStepsProductionRateColumn.setCellValueFactory(new TreeItemPropertyValueFactory<FactoryProductionStep, Double>("itemProductionPerSecond"));
 		factoryProductionStepsProductionRateColumn.setStyle("-fx-alignment: CENTER-RIGHT;");
 		factoryProductionStepsProductionRateColumn.setCellFactory(col -> new TreeTableCell<FactoryProductionStep, Double>()
 		{
@@ -212,6 +213,21 @@ public class MainWindowController
 				}
 			}
 		});
+		factoryProductionStepsTransportColumn.setCellValueFactory(new TreeItemPropertyValueFactory<FactoryProductionStep, Double>("itemProductionPerSecond"));
+		factoryProductionStepsTransportColumn.setCellFactory(col -> {
+			TreeTableCell<FactoryProductionStep, Double> cell = new TreeTableCell<FactoryProductionStep, Double>();
+			cell.setEditable(true);
+			final TransportComboBox transportComboBox = new TransportComboBox(0.0);
+			cell.itemProperty().addListener((observable, oldValue, newValue) -> {
+				if (newValue != null) {
+					transportComboBox.setItemCount(newValue);					
+				}
+			});
+
+			cell.graphicProperty().bind(Bindings.when(cell.emptyProperty()).then((Node) null).otherwise(wrapNodeInAnchorPane(transportComboBox)));
+			return cell;
+		});
+
 
 		factoryInputsTable.setItems(calculatedInputsModel.readOnlyFactoryInputs);
 		factoryInputsTableItemColumn.setCellValueFactory(new PropertyValueFactory<FactoryInput, Item>("item"));
@@ -230,16 +246,18 @@ public class MainWindowController
 				}
 			}
 		});
+		factoryInputsTableTransportColumn.setCellValueFactory(new PropertyValueFactory<FactoryInput, Double>("itemsPerSecond"));
 		factoryInputsTableTransportColumn.setCellFactory(col -> {
 			TableCell<FactoryInput, Double> cell = new TableCell<FactoryInput, Double>();
 			cell.setEditable(true);
-			final TransportComboBox transportComboBox = new TransportComboBox();
-			transportComboBox.setEditable(true);
+			final TransportComboBox transportComboBox = new TransportComboBox(0.0);
 			cell.itemProperty().addListener((observable, oldValue, newValue) -> {
-				transportComboBox.setItemCount(newValue);
+				if (newValue != null) {
+					transportComboBox.setItemCount(newValue);					
+				}
 			});
 
-			cell.graphicProperty().bind(Bindings.when(cell.emptyProperty()).then((Node) null).otherwise(transportComboBox));
+			cell.graphicProperty().bind(Bindings.when(cell.emptyProperty()).then((Node) null).otherwise(wrapNodeInAnchorPane(transportComboBox)));
 			return cell;
 		});
 	}
@@ -361,5 +379,15 @@ public class MainWindowController
 				return item.name.contains(filterText);
 			}
 		});
+	}
+	
+	private final AnchorPane wrapNodeInAnchorPane(Node nodeToWrap)
+	{
+		AnchorPane pane = new AnchorPane(nodeToWrap);
+		AnchorPane.setTopAnchor(nodeToWrap, 0.0);
+		AnchorPane.setBottomAnchor(nodeToWrap, 0.0);
+		AnchorPane.setLeftAnchor(nodeToWrap, 0.0);
+		AnchorPane.setRightAnchor(nodeToWrap, 0.0);
+		return pane;
 	}
 }

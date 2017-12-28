@@ -30,14 +30,14 @@ public class FactoryInputsModel
 			boolean inputAlreadyExisted = false;
 			for (FactoryInput input : factoryInputs) {
 				if (input.getItem().equals(step.getItemProduced())) {
-					input.itemsPerSecond.set(input.itemsPerSecond.get() + step.getRequiredIntermediariesPerSecond());
+					input.itemsPerSecond.set(input.itemsPerSecond.get() + step.getItemProductionPerSecond());
 					inputAlreadyExisted = true;
 					break;
 				}
 			}
 
 			if (!inputAlreadyExisted) {
-				factoryInputs.add(new FactoryInput(step.getItemProduced(), step.getRequiredIntermediariesPerSecond()));
+				factoryInputs.add(new FactoryInput(step.getItemProduced(), step.getItemProductionPerSecond()));
 			}
 		} else {
 			productionStep.getChildren().forEach(child -> {
