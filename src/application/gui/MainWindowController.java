@@ -188,7 +188,6 @@ public class MainWindowController
 					comboBox.valueProperty().bindBidirectional(newValue);
 				}
 			});
-			final AnchorPane containerPane = new AnchorPane(comboBox);
 			cell.graphicProperty().bind(Bindings.when(cell.emptyProperty()).then((Node) null).otherwise(wrapControlInAnchorPane(comboBox)));
 			return cell;
 		});

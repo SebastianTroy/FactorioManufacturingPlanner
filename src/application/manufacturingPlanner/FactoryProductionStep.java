@@ -14,7 +14,7 @@ import javafx.scene.control.TreeItem;
 public class FactoryProductionStep
 {
 	private final Item itemProduced;
-	public final SimpleDoubleProperty itemProductionPerSecond = new SimpleDoubleProperty();
+	public final SimpleDoubleProperty itemProductionPerSecond;
 	private final ArrayList<Recipe> potentialRecipes;
 
 	private final RecipesDatabase allRecipes;
@@ -36,7 +36,7 @@ public class FactoryProductionStep
 	public FactoryProductionStep(Item item, double requiredProductionPerSecond, RecipesDatabase allRecipes, Collection<Item> preProducedItems, boolean usingExpensiveRecipes)
 	{
 		this.itemProduced = item;
-		this.itemProductionPerSecond.set(requiredProductionPerSecond);
+		this.itemProductionPerSecond = new SimpleDoubleProperty(requiredProductionPerSecond);
 		this.potentialRecipes = allRecipes.getRecipesWhichProduce(item, usingExpensiveRecipes);
 
 		this.allRecipes = allRecipes;
